@@ -29,6 +29,19 @@ describe('Validation Schemas Tests', () => {
       assert.equal(result.success, true);
     });
 
+    it('accepts a course with 0 credits (non-GPA requirement course)', () => {
+      const zeroCreditCourse = {
+        code: 'PE101',
+        name: 'Physical Education 1',
+        credits: 0,
+        semesterId: 'sem-fall-2026',
+        color: '#10B981',
+        status: 'enrolled',
+      };
+      const result = CourseFormSchema.safeParse(zeroCreditCourse);
+      assert.equal(result.success, true);
+    });
+
     it('rejects missing course code or name', () => {
       const invalid = {
         code: '',
@@ -73,6 +86,35 @@ describe('Validation Schemas Tests', () => {
       };
       const result = TimetableSlotFormSchema.safeParse(validSlot);
       assert.equal(result.success, true);
+    });
+
+    it('validates a slot starting at 06:45 with course_weeks and custom recurrence', () => {
+      const earlySlot = {
+        courseId: 'course-1',
+        dayOfWeek: 2,
+        startTime: '06:45',
+        endTime: '09:15',
+        location: 'Nhà B1',
+        room: 'P.302',
+        type: 'lecture',
+        recurrence: 'course_weeks',
+        customWeeks: '2-19',
+      };
+      const resultA = TimetableSlotFormSchema.safeParse(earlySlot);
+      assert.equal(resultA.success, true);
+
+      const customSlot = {
+        courseId: 'course-1',
+        dayOfWeek: 4,
+        startTime: '12:30',
+        endTime: '17:30',
+        location: 'Giảng đường D9',
+        type: 'lab',
+        recurrence: 'custom',
+        customWeeks: '2-9, 11-18',
+      };
+      const resultB = TimetableSlotFormSchema.safeParse(customSlot);
+      assert.equal(resultB.success, true);
     });
 
     it('rejects when end time is before or equal to start time', () => {

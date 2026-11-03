@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { TimetableSlot, DayOfWeek } from '@/types';
 import { timetableRepository, dataAccessLayer } from '@/lib/storage/dal';
+import { getDatabaseMode } from '@/lib/storage/db';
 import { SEED_DATA } from '@/constants/seedData';
 
 export interface TimetableState {
@@ -28,7 +29,7 @@ export function getTodayDayOfWeek(): DayOfWeek {
 }
 
 export const useTimetableStore = create<TimetableState>((set, get) => ({
-  slots: SEED_DATA.data.timetable,
+  slots: typeof window !== 'undefined' && getDatabaseMode() === 'real' ? [] : SEED_DATA.data.timetable,
   isLoading: false,
   error: null,
   viewMode: 'week',
@@ -44,7 +45,7 @@ export const useTimetableStore = create<TimetableState>((set, get) => ({
       await dataAccessLayer.initializeSeedDataIfNeeded();
       const fetchedSlots = await timetableRepository.getAll();
       set({
-        slots: fetchedSlots.length > 0 ? fetchedSlots : SEED_DATA.data.timetable,
+        slots: fetchedSlots,
         isLoading: false,
       });
     } catch (err: unknown) {

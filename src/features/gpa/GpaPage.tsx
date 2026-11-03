@@ -41,6 +41,7 @@ export const GpaPage: React.FC = () => {
     addCourse,
     updateCourse,
     deleteCourse,
+    updateSemester,
   } = useGpaAnalytics();
 
   // Zustand Store actions
@@ -148,8 +149,8 @@ export const GpaPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="GPA Calculator & Analytics"
-        subtitle="Credit-weighted GPA projections, academic honors standing, and multi-term performance intelligence"
+        title="Tính điểm & Phân tích GPA"
+        subtitle="Dự báo điểm GPA theo tín chỉ, xếp loại học lực và phân tích học tập nhiều học kỳ"
         badge={
           <Badge variant="brand" dot>
             {cumulativeSummary.academicStanding.title} · {activeScale.name}
@@ -168,7 +169,7 @@ export const GpaPage: React.FC = () => {
                 }`}
               >
                 <Calculator className="h-3.5 w-3.5 text-brand-600" />
-                <span>GPA Calculator</span>
+                <span>Máy tính GPA</span>
               </button>
               <button
                 onClick={() => setActiveTab('analytics')}
@@ -179,7 +180,7 @@ export const GpaPage: React.FC = () => {
                 }`}
               >
                 <BarChart2 className="h-3.5 w-3.5 text-indigo-600" />
-                <span>Analytics & Trends</span>
+                <span>Phân tích & Xu hướng</span>
               </button>
             </div>
 
@@ -189,7 +190,7 @@ export const GpaPage: React.FC = () => {
               leftIcon={<Sliders className="h-3.5 w-3.5" />}
               onClick={() => setIsScaleModalOpen(true)}
             >
-              Scales
+              Thang điểm
             </Button>
 
             <Button
@@ -198,7 +199,7 @@ export const GpaPage: React.FC = () => {
               leftIcon={<Plus className="h-3.5 w-3.5" />}
               onClick={handleOpenAddModal}
             >
-              Add Grade
+              Nhập điểm
             </Button>
           </div>
         }
@@ -225,6 +226,9 @@ export const GpaPage: React.FC = () => {
           onOpenExplainerModal={() => setIsExplainerOpen(true)}
           onOpenScaleModal={() => setIsScaleModalOpen(true)}
           onDeleteRecord={handleDeleteGradeRecord}
+          onUpdateTargetGpa={async (semesterId: string, targetGpa: number) => {
+            await updateSemester(semesterId, { targetGpa });
+          }}
         />
       ) : (
         <AcademicAnalyticsTab

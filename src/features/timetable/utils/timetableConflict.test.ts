@@ -185,4 +185,70 @@ describe('Timetable Conflict Detection Business Logic', () => {
       assert.equal(conflicts[0].slotB.id, 's2');
     });
   });
+
+  describe('Vietnamese Standard Curriculum Hours (06:45 - 17:30) & Custom Recurrence', () => {
+    it('accurately parses 06:45 and 17:30 in 24h minutes', () => {
+      assert.equal(timeToMinutes('06:45'), 6 * 60 + 45); // 405 minutes
+      assert.equal(timeToMinutes('17:30'), 17 * 60 + 30); // 1050 minutes
+      assert.equal(timeToMinutes('11:50'), 11 * 60 + 50); // 710 minutes
+    });
+
+    it('detects overlap for standard morning session (06:45 - 09:15) with overlapping class', () => {
+      assert.equal(doTimeRangesOverlap('06:45', '09:15', '08:30', '10:00'), true);
+      assert.equal(doTimeRangesOverlap('06:45', '09:15', '09:15', '11:50'), false); // boundary touching
+    });
+
+    it('allows disjoint custom study weeks on the same day and time without clash', () => {
+      // Disjoint: weeks 2-9 vs weeks 11-18
+      assert.equal(doRecurrencesOverlap('custom', 'custom', '2-9', '11-18'), false);
+      assert.equal(doRecurrencesOverlap('course_weeks', 'custom', '1-8', '9-16'), false);
+    });
+
+    it('detects collision when custom study weeks overlap', () => {
+      // Overlapping week 5-8: weeks 2-8 vs weeks 5-12
+      assert.equal(doRecurrencesOverlap('custom', 'custom', '2-8', '5-12'), true);
+      assert.equal(doRecurrencesOverlap('course_weeks', 'course_weeks', '2-19', '2-19'), true);
+    });
+
+    it('detects conflict for 06:45 class when weeks overlap, but avoids conflict when weeks are disjoint', () => {
+      const slotEarlyA: TimetableSlot = {
+        id: 'slot-early-1',
+        courseId: 'c1',
+        dayOfWeek: 1, // Monday
+        startTime: '06:45',
+        endTime: '09:15',
+        location: 'B1',
+        type: 'lecture',
+        recurrence: 'custom',
+        customWeeks: '2-9',
+      };
+
+      const slotEarlyBDisjoint: TimetableSlot = {
+        id: 'slot-early-2',
+        courseId: 'c2',
+        dayOfWeek: 1, // Monday
+        startTime: '06:45',
+        endTime: '09:15',
+        location: 'B1',
+        type: 'lecture',
+        recurrence: 'custom',
+        customWeeks: '11-18',
+      };
+
+      const slotEarlyBClash: TimetableSlot = {
+        id: 'slot-early-3',
+        courseId: 'c3',
+        dayOfWeek: 1, // Monday
+        startTime: '06:45',
+        endTime: '09:15',
+        location: 'B1',
+        type: 'lecture',
+        recurrence: 'custom',
+        customWeeks: '5-12',
+      };
+
+      assert.equal(areSlotsInConflict(slotEarlyA, slotEarlyBDisjoint), false);
+      assert.equal(areSlotsInConflict(slotEarlyA, slotEarlyBClash), true);
+    });
+  });
 });

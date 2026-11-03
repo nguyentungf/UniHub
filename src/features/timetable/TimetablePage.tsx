@@ -9,6 +9,9 @@ import {
   AlertTriangle,
   User,
   Filter,
+  Layers,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { PageHeader, EmptyState, LoadingState } from '@/components/common';
 import { Card, Button, Badge, Modal, Select } from '@/components/ui';
@@ -18,35 +21,186 @@ import {
   detectAllTimetableConflicts,
   getDayName,
   timeToMinutes,
+  parseStudyWeeks,
 } from './utils/timetableConflict';
 import { TimetableSlotModal } from './components/TimetableSlotModal';
 import { SlotDetailModal } from './components/SlotDetailModal';
-import { TimetableSlot, DayOfWeek } from '@/types';
+import { TimetableSlot, DayOfWeek, Course } from '@/types';
 
 const DAYS: { day: DayOfWeek; name: string; short: string }[] = [
-  { day: 1, name: 'Monday', short: 'Mon' },
-  { day: 2, name: 'Tuesday', short: 'Tue' },
-  { day: 3, name: 'Wednesday', short: 'Wed' },
-  { day: 4, name: 'Thursday', short: 'Thu' },
-  { day: 5, name: 'Friday', short: 'Fri' },
-  { day: 6, name: 'Saturday', short: 'Sat' },
-  { day: 7, name: 'Sunday', short: 'Sun' },
+  { day: 1, name: 'Thứ Hai', short: 'T2' },
+  { day: 2, name: 'Thứ Ba', short: 'T3' },
+  { day: 3, name: 'Thứ Tư', short: 'T4' },
+  { day: 4, name: 'Thứ Năm', short: 'T5' },
+  { day: 5, name: 'Thứ Sáu', short: 'T6' },
+  { day: 6, name: 'Thứ Bảy', short: 'T7' },
+  { day: 7, name: 'Chủ Nhật', short: 'CN' },
 ];
 
-const TIME_ROWS = [
-  '08:00',
-  '09:00',
-  '10:00',
-  '11:00',
-  '12:00',
-  '13:00',
-  '14:00',
-  '15:00',
-  '16:00',
-  '17:00',
-  '18:00',
-  '19:00',
-];
+const getDayNameVi = (day: DayOfWeek): string => {
+  const map: Record<DayOfWeek, string> = {
+    1: 'Thứ Hai',
+    2: 'Thứ Ba',
+    3: 'Thứ Tư',
+    4: 'Thứ Năm',
+    5: 'Thứ Sáu',
+    6: 'Thứ Bảy',
+    7: 'Chủ Nhật',
+  };
+  return map[day] || `Thứ ${day}`;
+};
+
+const getSlotTypeVi = (type: TimetableSlot['type']): string => {
+  const map: Record<TimetableSlot['type'], string> = {
+    lecture: 'Lý thuyết',
+    lab: 'Thực hành',
+    tutorial: 'Bài tập',
+    seminar: 'Chuyên đề',
+  };
+  return map[type] || type;
+};
+
+const getRecurrenceLabel = (slot: TimetableSlot, course?: Course): string => {
+  if (slot.recurrence === 'course_weeks') {
+    const w = slot.customWeeks || course?.studyWeeks || '2-19';
+    return `Tuần ${w}`;
+  }
+  if (slot.recurrence === 'custom') {
+    return `Tuần ${slot.customWeeks || 'Tùy chỉnh'}`;
+  }
+  const map: Record<string, string> = {
+    weekly: 'Hàng tuần',
+    biweekly_odd: 'Tuần lẻ',
+    biweekly_even: 'Tuần chẵn',
+  };
+  return map[slot.recurrence] || slot.recurrence;
+};
+
+// 24-Hour Timeline Configuration (covering 06:45 - 17:30 standard university curriculum and ca tối)
+const TIMELINE_START_HOUR = 6;  // 06:00 (360 mins)
+const TIMELINE_END_HOUR = 21;    // 21:00 (1260 mins)
+const HOUR_HEIGHT = 68;          // Pixels per 60 minutes
+const TOTAL_HOURS = TIMELINE_END_HOUR - TIMELINE_START_HOUR;
+const TOTAL_TIMELINE_HEIGHT = TOTAL_HOURS * HOUR_HEIGHT; // 1020px
+
+// Generate 24-hour markers: 06:00, 07:00, ..., 21:00
+const TIMELINE_HOURS = Array.from({ length: TOTAL_HOURS + 1 }, (_, i) => {
+  const h = TIMELINE_START_HOUR + i;
+  return `${h < 10 ? '0' : ''}${h}:00`;
+});
+
+interface LayoutSlot {
+  slot: TimetableSlot;
+  top: number;
+  height: number;
+  leftPercent: number;
+  widthPercent: number;
+}
+
+/**
+ * Computes exact proportional positioning and handles overlapping column clusters
+ */
+function computeDayLayout(daySlots: TimetableSlot[]): LayoutSlot[] {
+  if (daySlots.length === 0) return [];
+
+  // Sort by start time, then duration desc
+  const sorted = [...daySlots].sort((a, b) => {
+    const diff = timeToMinutes(a.startTime) - timeToMinutes(b.startTime);
+    if (diff !== 0) return diff;
+    return timeToMinutes(b.endTime) - timeToMinutes(a.endTime);
+  });
+
+  // Group into overlapping clusters
+  const clusters: TimetableSlot[][] = [];
+  let currentCluster: TimetableSlot[] = [];
+  let clusterEnd = -1;
+
+  for (const slot of sorted) {
+    const sMin = timeToMinutes(slot.startTime);
+    const eMin = timeToMinutes(slot.endTime);
+
+    if (currentCluster.length === 0) {
+      currentCluster.push(slot);
+      clusterEnd = eMin;
+    } else if (sMin < clusterEnd) {
+      currentCluster.push(slot);
+      clusterEnd = Math.max(clusterEnd, eMin);
+    } else {
+      clusters.push(currentCluster);
+      currentCluster = [slot];
+      clusterEnd = eMin;
+    }
+  }
+  if (currentCluster.length > 0) {
+    clusters.push(currentCluster);
+  }
+
+  const result: LayoutSlot[] = [];
+  for (const cluster of clusters) {
+    if (cluster.length === 1) {
+      const s = cluster[0];
+      const sMin = timeToMinutes(s.startTime);
+      const eMin = timeToMinutes(s.endTime);
+      const top = ((sMin - TIMELINE_START_HOUR * 60) / 60) * HOUR_HEIGHT;
+      const height = Math.max(34, ((eMin - sMin) / 60) * HOUR_HEIGHT);
+      result.push({ slot: s, top, height, leftPercent: 0, widthPercent: 100 });
+      continue;
+    }
+
+    // Distribute slots in columns within cluster
+    const columns: TimetableSlot[][] = [];
+    for (const slot of cluster) {
+      const sMin = timeToMinutes(slot.startTime);
+      let placed = false;
+      for (let c = 0; c < columns.length; c++) {
+        const lastInCol = columns[c][columns[c].length - 1];
+        if (timeToMinutes(lastInCol.endTime) <= sMin) {
+          columns[c].push(slot);
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        columns.push([slot]);
+      }
+    }
+
+    const totalCols = columns.length;
+    const colWidth = 100 / totalCols;
+
+    for (let c = 0; c < totalCols; c++) {
+      for (const slot of columns[c]) {
+        const sMin = timeToMinutes(slot.startTime);
+        const eMin = timeToMinutes(slot.endTime);
+        const top = ((sMin - TIMELINE_START_HOUR * 60) / 60) * HOUR_HEIGHT;
+        const height = Math.max(34, ((eMin - sMin) / 60) * HOUR_HEIGHT);
+        result.push({
+          slot,
+          top,
+          height,
+          leftPercent: c * colWidth,
+          widthPercent: colWidth - 1,
+        });
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Computes estimated semester week from start date
+ */
+function computeCurrentAcademicWeek(startDateStr?: string): number {
+  if (!startDateStr) return 1;
+  const start = new Date(startDateStr);
+  const now = new Date();
+  if (isNaN(start.getTime())) return 1;
+  const diffTime = now.getTime() - start.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const weekNum = Math.floor(diffDays / 7) + 1;
+  return Math.max(1, Math.min(25, weekNum));
+}
 
 export const TimetablePage: React.FC = () => {
   const slots = useTimetableStore((state) => state.slots);
@@ -62,9 +216,11 @@ export const TimetablePage: React.FC = () => {
   const deleteSlot = useTimetableStore((state) => state.deleteSlot);
 
   const courses = useCourseStore((state) => state.courses);
+  const semesters = useCourseStore((state) => state.semesters);
   const loadCourses = useCourseStore((state) => state.loadCourses);
 
   const [selectedCourseFilter, setSelectedCourseFilter] = useState<string>('all');
+  const [selectedWeekFilter, setSelectedWeekFilter] = useState<string>('all'); // 'all' or '1', '2', ...
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [slotToEdit, setSlotToEdit] = useState<TimetableSlot | null>(null);
   const [slotToView, setSlotToView] = useState<TimetableSlot | null>(null);
@@ -77,7 +233,17 @@ export const TimetablePage: React.FC = () => {
 
   const todayDayOfWeek = useMemo(() => getTodayDayOfWeek(), []);
 
-  // Conflict detection
+  // Compute current semester and current academic week
+  const currentSemester = useMemo(
+    () => semesters.find((s) => s.isCurrent) || semesters[0],
+    [semesters]
+  );
+  const currentAcademicWeek = useMemo(
+    () => computeCurrentAcademicWeek(currentSemester?.startDate),
+    [currentSemester]
+  );
+
+  // Real-time conflict detection across all registered slots
   const allConflicts = useMemo(() => detectAllTimetableConflicts(slots), [slots]);
   const conflictingSlotIds = useMemo(() => {
     const set = new Set<string>();
@@ -88,11 +254,54 @@ export const TimetablePage: React.FC = () => {
     return set;
   }, [allConflicts]);
 
-  // Filtered slots
+  // Recurrence & Week filtering logic
+  const isSlotActiveInWeek = (slot: TimetableSlot, weekNum: number): boolean => {
+    if (slot.recurrence === 'weekly') return true;
+    if (slot.recurrence === 'biweekly_odd') return weekNum % 2 === 1;
+    if (slot.recurrence === 'biweekly_even') return weekNum % 2 === 0;
+
+    const course = courses.find((c) => c.id === slot.courseId);
+    if (slot.recurrence === 'course_weeks') {
+      const weeksStr = slot.customWeeks || course?.studyWeeks || '';
+      const parsed = parseStudyWeeks(weeksStr);
+      return parsed.length === 0 || parsed.includes(weekNum);
+    }
+    if (slot.recurrence === 'custom') {
+      const parsed = parseStudyWeeks(slot.customWeeks || '');
+      return parsed.length === 0 || parsed.includes(weekNum);
+    }
+    return true;
+  };
+
+  // Filtered slots according to course selection AND week selection
   const filteredSlots = useMemo(() => {
-    if (selectedCourseFilter === 'all') return slots;
-    return slots.filter((s) => s.courseId === selectedCourseFilter);
-  }, [slots, selectedCourseFilter]);
+    let result = slots;
+
+    // Course filter
+    if (selectedCourseFilter !== 'all') {
+      result = result.filter((s) => s.courseId === selectedCourseFilter);
+    }
+
+    // Week filter (Tuần học)
+    if (selectedWeekFilter !== 'all') {
+      const weekNum = parseInt(selectedWeekFilter, 10);
+      if (!isNaN(weekNum)) {
+        result = result.filter((s) => isSlotActiveInWeek(s, weekNum));
+      }
+    }
+
+    return result;
+  }, [slots, selectedCourseFilter, selectedWeekFilter, courses]);
+
+  // Current time indicator line calculation
+  const now = new Date();
+  const currentMinutesFromMidnight = now.getHours() * 60 + now.getMinutes();
+  const isNowWithinTimeline =
+    currentMinutesFromMidnight >= TIMELINE_START_HOUR * 60 &&
+    currentMinutesFromMidnight <= TIMELINE_END_HOUR * 60;
+  const currentNowTop = isNowWithinTimeline
+    ? ((currentMinutesFromMidnight - TIMELINE_START_HOUR * 60) / 60) * HOUR_HEIGHT
+    : null;
 
   const handleDeleteConfirm = async () => {
     if (!slotToDelete) return;
@@ -111,22 +320,22 @@ export const TimetablePage: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Weekly Timetable"
-        subtitle="Interactive schedule grid, room directions, conflict collision check, and daily agenda"
+        title="Thời khóa biểu tuần"
+        subtitle="Lịch học trực quan dạng lưới, chuẩn ca học 06:45 - 17:30, thang 24h & lặp theo tuần đăng ký"
         badge={
           allConflicts.length === 0 ? (
             <Badge variant="emerald" dot>
-              Schedule Clash-Free
+              Lịch học thông suốt (Không trùng giờ)
             </Badge>
           ) : (
             <Badge variant="rose" dot>
-              {allConflicts.length} Conflict(s) Detected
+              Phát hiện {allConflicts.length} xung đột lịch
             </Badge>
           )
         }
         actions={
           <div className="flex items-center gap-2 flex-wrap">
-            {/* View Switcher: Weekly Grid vs Daily Agenda */}
+            {/* View Mode Switcher */}
             <div className="flex items-center rounded-xl bg-slate-100 p-1 dark:bg-slate-800 text-xs font-medium">
               <button
                 onClick={() => setViewMode('week')}
@@ -136,7 +345,7 @@ export const TimetablePage: React.FC = () => {
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
                 }`}
               >
-                Weekly Grid
+                Lưới theo tuần (24h)
               </button>
               <button
                 onClick={() => setViewMode('agenda')}
@@ -146,16 +355,36 @@ export const TimetablePage: React.FC = () => {
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
                 }`}
               >
-                Daily Agenda
+                Lịch trình ngày
               </button>
+            </div>
+
+            {/* Week Selector Dropdown */}
+            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-1 text-xs">
+              <CalendarIcon className="h-3.5 w-3.5 text-brand-500 shrink-0" />
+              <select
+                value={selectedWeekFilter}
+                onChange={(e) => setSelectedWeekFilter(e.target.value)}
+                className="bg-transparent font-medium text-slate-800 dark:text-slate-200 focus:outline-hidden cursor-pointer"
+              >
+                <option value="all">Tất cả các tuần (Tổng quan)</option>
+                {Array.from({ length: 20 }, (_, i) => i + 1).map((w) => (
+                  <option key={w} value={String(w)}>
+                    Tuần {w} {w === currentAcademicWeek ? '(Tuần hiện tại)' : ''}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <Button
               size="sm"
               leftIcon={<Plus className="h-4 w-4" />}
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={() => {
+                setSlotToEdit(null);
+                setIsAddModalOpen(true);
+              }}
             >
-              Add Class Slot
+              Thêm tiết học
             </Button>
           </div>
         }
@@ -167,26 +396,32 @@ export const TimetablePage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 font-bold">
               <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0" />
-              <span>Timetable Scheduling Conflicts Detected ({allConflicts.length})</span>
+              <span>Phát hiện xung đột thời khóa biểu ({allConflicts.length})</span>
             </div>
-            <span className="text-[11px] font-semibold underline cursor-pointer" onClick={() => setViewMode('agenda')}>
-              Review Conflicts →
+            <span
+              className="text-[11px] font-semibold underline cursor-pointer"
+              onClick={() => setViewMode('agenda')}
+            >
+              Xem chi tiết xung đột →
             </span>
           </div>
           <p className="text-[11px] leading-relaxed">
-            The following scheduled class sessions overlap in time on the same day:
+            Các tiết học sau đây bị trùng khung giờ trong cùng ngày và cùng tuần học:
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
             {allConflicts.map((c, i) => {
               const courseA = courses.find((course) => course.id === c.slotA.courseId);
               const courseB = courses.find((course) => course.id === c.slotB.courseId);
               return (
-                <div key={i} className="p-2 rounded-xl bg-white/80 dark:bg-navy-900/60 border border-rose-200 dark:border-rose-900 text-[11px]">
-                  <span className="font-bold">{getDayName(c.slotA.dayOfWeek)}: </span>
+                <div
+                  key={i}
+                  className="p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/80 border border-rose-200 dark:border-rose-900 text-[11px]"
+                >
+                  <span className="font-bold">{getDayNameVi(c.slotA.dayOfWeek)}: </span>
                   <span className="font-semibold text-rose-700 dark:text-rose-300">
                     {courseA?.code} ({c.slotA.startTime}-{c.slotA.endTime})
                   </span>{' '}
-                  clashes with{' '}
+                  trùng với{' '}
                   <span className="font-semibold text-rose-700 dark:text-rose-300">
                     {courseB?.code} ({c.slotB.startTime}-{c.slotB.endTime})
                   </span>
@@ -200,18 +435,25 @@ export const TimetablePage: React.FC = () => {
           <div className="flex items-center gap-2.5">
             <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span className="font-medium text-emerald-900 dark:text-emerald-200">
-              Schedule Clash-Free: All {slots.length} class slots verified with zero time collisions.
+              Lịch học thông suốt: Tất cả {slots.length} tiết học đã được xác minh không trùng giờ.
             </span>
           </div>
-          <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
-            {slots.length} Slots Scheduled
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+              {filteredSlots.length} tiết hiển thị
+            </span>
+            {selectedWeekFilter !== 'all' && (
+              <Badge variant="brand" size="sm">
+                Đang lọc: Tuần {selectedWeekFilter}
+              </Badge>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Course Filter Bar */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      {/* Filter Bar: Course selection chips */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
           <button
             onClick={() => setSelectedCourseFilter('all')}
             className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all select-none whitespace-nowrap ${
@@ -220,7 +462,7 @@ export const TimetablePage: React.FC = () => {
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
             }`}
           >
-            All Courses ({slots.length})
+            Tất cả môn học ({slots.length})
           </button>
           {courses.map((course) => {
             const count = slots.filter((s) => s.courseId === course.id).length;
@@ -242,17 +484,28 @@ export const TimetablePage: React.FC = () => {
             );
           })}
         </div>
+
+        {/* Standard Program Legend Pill */}
+        <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 px-3 py-1 rounded-xl border border-slate-200/80 dark:border-slate-800">
+          <Clock className="h-3 w-3 text-brand-500" />
+          <span>Khung giờ chính khóa: <strong>06:45 - 17:30</strong> (Thang 24h)</span>
+        </div>
       </div>
 
-      {/* VIEW MODE 1: WEEKLY CALENDAR GRID (Monday - Sunday) */}
+      {/* VIEW MODE 1: PROPORTIONAL WEEKLY CALENDAR GRID (Thang 24h, 06:45 - 17:30 tiêu chuẩn) */}
       {viewMode === 'week' ? (
-        <Card className="overflow-x-auto shadow-sm">
-          <div className="min-w-[850px] p-4">
-            {/* 7 Days Header (Monday to Sunday) + Time column */}
+        <Card className="overflow-x-auto shadow-sm p-0 border border-slate-200/90 dark:border-slate-800">
+          <div className="min-w-[940px] p-4">
+            {/* Header: Time label + 7 Day headers (Monday to Sunday) */}
             <div className="grid grid-cols-8 gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 text-center text-xs font-semibold text-slate-700 dark:text-slate-300">
-              <div className="text-left text-slate-400 font-normal pl-1">Time</div>
+              <div className="text-left text-slate-400 font-normal pl-2 flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5 text-slate-400" />
+                <span>Giờ (24h)</span>
+              </div>
               {DAYS.map((d) => {
                 const isToday = d.day === todayDayOfWeek;
+                const daySlotCount = filteredSlots.filter((s) => s.dayOfWeek === d.day).length;
+
                 return (
                   <div
                     key={d.day}
@@ -268,106 +521,169 @@ export const TimetablePage: React.FC = () => {
                       </span>
                       {isToday && (
                         <span className="font-mono text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-brand-600 text-white shadow-xs">
-                          TODAY
+                          HÔM NAY
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] text-slate-400 font-normal">{d.name}</span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      {d.name} {daySlotCount > 0 && `(${daySlotCount})`}
+                    </span>
                   </div>
                 );
               })}
             </div>
 
-            {/* Time Slot Rows */}
-            <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
-              {TIME_ROWS.map((time) => {
-                const currentHour = parseInt(time.split(':')[0], 10);
+            {/* Timeline Layout Area (06:00 to 21:00) */}
+            <div className="relative grid grid-cols-8 gap-2 pt-2" style={{ height: `${TOTAL_TIMELINE_HEIGHT}px` }}>
+              {/* Left Column: 24h Time Labels */}
+              <div className="relative select-none pr-2">
+                {TIMELINE_HOURS.map((hourStr, i) => {
+                  const top = i * HOUR_HEIGHT;
+                  const isCurriculumHour =
+                    hourStr >= '06:00' && hourStr <= '17:00';
+
+                  return (
+                    <div
+                      key={hourStr}
+                      className="absolute left-0 text-xs font-mono -translate-y-2 flex items-center gap-1"
+                      style={{ top: `${top}px` }}
+                    >
+                      <span
+                        className={`font-semibold ${
+                          isCurriculumHour
+                            ? 'text-slate-600 dark:text-slate-300'
+                            : 'text-slate-400 dark:text-slate-500'
+                        }`}
+                      >
+                        {hourStr}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                {/* Standard Period Highlight Indicator on Side */}
+                <div
+                  className="absolute left-0 w-1 rounded-full bg-brand-500/80"
+                  style={{
+                    top: `${((45 / 60)) * HOUR_HEIGHT}px`, // 06:45
+                    height: `${(( (17 * 60 + 30) - (6 * 60 + 45) ) / 60) * HOUR_HEIGHT}px`, // to 17:30
+                  }}
+                  title="Khung giờ học chính khóa tiêu chuẩn: 06:45 - 17:30"
+                />
+              </div>
+
+              {/* 7 Columns: Days (Monday to Sunday) */}
+              {DAYS.map((d) => {
+                const isToday = d.day === todayDayOfWeek;
+                const daySlots = filteredSlots.filter((slot) => slot.dayOfWeek === d.day);
+                const layoutSlots = computeDayLayout(daySlots);
 
                 return (
-                  <div key={time} className="grid grid-cols-8 gap-2 py-2 min-h-[80px]">
-                    {/* Time Label */}
-                    <div className="text-xs font-mono text-slate-400 pt-1 pl-1">
-                      {time}
-                    </div>
+                  <div
+                    key={d.day}
+                    className={`relative rounded-xl border-l border-slate-100 dark:border-slate-800/80 transition-colors ${
+                      isToday ? 'bg-brand-50/[0.15] dark:bg-brand-950/[0.08]' : ''
+                    }`}
+                  >
+                    {/* Hourly horizontal background grid lines */}
+                    {TIMELINE_HOURS.map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute left-0 right-0 border-t border-slate-100 dark:border-slate-800/60 pointer-events-none"
+                        style={{ top: `${i * HOUR_HEIGHT}px` }}
+                      />
+                    ))}
 
-                    {/* 7 Day Columns (Monday to Sunday) */}
-                    {DAYS.map((d) => {
-                      const isToday = d.day === todayDayOfWeek;
+                    {/* Standard period boundaries: 06:45 and 17:30 subtle dashed lines */}
+                    <div
+                      className="absolute left-0 right-0 border-t border-dashed border-brand-300/40 dark:border-brand-700/30 pointer-events-none"
+                      style={{ top: `${((45 / 60)) * HOUR_HEIGHT}px` }}
+                      title="06:45 - Bắt đầu tiết 1"
+                    />
+                    <div
+                      className="absolute left-0 right-0 border-t border-dashed border-brand-300/40 dark:border-brand-700/30 pointer-events-none"
+                      style={{ top: `${(((17 - 6) * 60 + 30) / 60) * HOUR_HEIGHT}px` }}
+                      title="17:30 - Kết thúc tiết 12"
+                    />
 
-                      // Match slots on this day whose start time matches or falls into this hour
-                      const matchingSlots = filteredSlots.filter((slot) => {
-                        if (slot.dayOfWeek !== d.day) return false;
-                        const slotStartHour = parseInt(slot.startTime.split(':')[0], 10);
-                        return slotStartHour === currentHour;
-                      });
+                    {/* Today's current time line indicator */}
+                    {isToday && currentNowTop !== null && (
+                      <div
+                        className="absolute left-0 right-0 z-20 flex items-center pointer-events-none"
+                        style={{ top: `${currentNowTop}px` }}
+                      >
+                        <div className="h-2 w-2 rounded-full bg-rose-500 shadow-xs -ml-1" />
+                        <div className="flex-1 h-0.5 bg-rose-500 shadow-xs" />
+                      </div>
+                    )}
+
+                    {/* Rendered Proportional Slots ("đúng giờ, đúng tỉ lệ box") */}
+                    {layoutSlots.map(({ slot, top, height, leftPercent, widthPercent }) => {
+                      const course = courses.find((c) => c.id === slot.courseId);
+                      const hasConflict = conflictingSlotIds.has(slot.id);
+                      const recLabel = getRecurrenceLabel(slot, course);
 
                       return (
                         <div
-                          key={d.day}
-                          className={`h-full flex flex-col gap-1.5 p-1 rounded-xl transition-colors ${
-                            isToday ? 'bg-brand-50/20 dark:bg-brand-950/10' : ''
+                          key={slot.id}
+                          onClick={() => setSlotToView(slot)}
+                          className={`group absolute rounded-xl p-2 text-white shadow-xs hover:shadow-md transition-all duration-150 cursor-pointer hover:scale-[1.02] border z-10 overflow-hidden flex flex-col justify-between ${
+                            hasConflict
+                              ? 'border-rose-400 ring-2 ring-rose-500 animate-pulse'
+                              : 'border-white/20 dark:border-black/20'
                           }`}
+                          style={{
+                            top: `${top}px`,
+                            height: `${height}px`,
+                            left: `${leftPercent}%`,
+                            width: `${widthPercent}%`,
+                            backgroundColor: course?.color || '#3b82f6',
+                          }}
                         >
-                          {matchingSlots.map((slot) => {
-                            const course = courses.find((c) => c.id === slot.courseId);
-                            const hasConflict = conflictingSlotIds.has(slot.id);
+                          <div>
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="font-black text-xs tracking-tight leading-none truncate">
+                                {course?.code}
+                              </span>
+                              {hasConflict ? (
+                                <span className="text-[8px] uppercase font-black px-1 py-0.2 rounded bg-rose-600 text-white shrink-0">
+                                  TRÙNG
+                                </span>
+                              ) : (
+                                <span className="text-[8px] uppercase font-bold px-1 py-0.2 rounded bg-black/25 shrink-0">
+                                  {getSlotTypeVi(slot.type)}
+                                </span>
+                              )}
+                            </div>
 
-                            return (
-                              <div
-                                key={slot.id}
-                                onClick={() => setSlotToView(slot)}
-                                className={`group relative rounded-xl p-2.5 text-white shadow-xs hover:shadow-md transition-all duration-150 cursor-pointer hover:scale-[1.02] border ${
-                                  hasConflict
-                                    ? 'border-rose-400 ring-2 ring-rose-500 animate-pulse'
-                                    : 'border-transparent'
-                                }`}
-                                style={{ backgroundColor: course?.color || '#3b82f6' }}
-                              >
-                                <div className="flex items-center justify-between gap-1">
-                                  <span className="font-extrabold text-xs tracking-tight">
-                                    {course?.code}
-                                  </span>
-                                  {hasConflict ? (
-                                    <span className="text-[9px] uppercase font-black px-1.5 py-0.2 rounded bg-rose-600 text-white shadow-xs">
-                                      CLASH
-                                    </span>
-                                  ) : (
-                                    <span className="text-[9px] uppercase font-bold px-1.5 py-0.2 rounded bg-black/25">
-                                      {slot.type}
-                                    </span>
-                                  )}
-                                </div>
+                            <p className="text-[11px] font-bold truncate mt-1 leading-tight opacity-95">
+                              {course?.name}
+                            </p>
+                          </div>
 
-                                <p className="text-[11px] font-semibold truncate mt-1 opacity-95">
-                                  {course?.name}
-                                </p>
+                          <div className="space-y-0.5 mt-auto pt-1">
+                            <div className="flex items-center gap-1 text-[10px] font-semibold opacity-95">
+                              <Clock className="h-3 w-3 shrink-0" />
+                              <span className="font-mono">
+                                {slot.startTime} - {slot.endTime}
+                              </span>
+                            </div>
 
-                                <div className="flex items-center gap-1 text-[10px] opacity-90 mt-1">
-                                  <Clock className="h-3 w-3 shrink-0" />
-                                  <span>
-                                    {slot.startTime} - {slot.endTime}
-                                  </span>
-                                </div>
+                            <div className="flex items-center gap-1 text-[9.5px] opacity-90 truncate">
+                              <MapPin className="h-2.5 w-2.5 shrink-0" />
+                              <span className="truncate">
+                                {slot.room ? `${slot.room} · ` : ''}
+                                {slot.location}
+                              </span>
+                            </div>
 
-                                <div className="flex items-center gap-1 text-[10px] opacity-85 mt-0.5 truncate">
-                                  <MapPin className="h-3 w-3 shrink-0" />
-                                  <span className="truncate">
-                                    {slot.room ? `${slot.room} · ` : ''}
-                                    {slot.location}
-                                  </span>
-                                </div>
-
-                                {(slot.instructor || course?.instructor) && (
-                                  <div className="flex items-center gap-1 text-[9px] opacity-80 mt-0.5 truncate">
-                                    <User className="h-2.5 w-2.5 shrink-0" />
-                                    <span className="truncate">
-                                      {slot.instructor || course?.instructor}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                            {/* Recurrence Chip */}
+                            <div className="pt-0.5">
+                              <span className="inline-block text-[8.5px] font-bold px-1.5 py-0.2 rounded bg-white/20 text-white backdrop-blur-xs truncate max-w-full">
+                                {recLabel}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       );
                     })}
@@ -401,13 +717,13 @@ export const TimetablePage: React.FC = () => {
                 >
                   {isToday && (
                     <span className="absolute top-1 right-1 text-[8px] font-black uppercase px-1 rounded bg-brand-500 text-white">
-                      TODAY
+                      HÔM NAY
                     </span>
                   )}
                   <span className="block text-[11px] uppercase opacity-80">{d.short}</span>
                   <span className="text-base font-extrabold">{d.name}</span>
                   <span className="text-[10px] block opacity-75 mt-0.5">
-                    {daySlotCount} Classes
+                    {daySlotCount} tiết học
                   </span>
                 </button>
               );
@@ -419,9 +735,9 @@ export const TimetablePage: React.FC = () => {
             {filteredSlots.filter((s) => s.dayOfWeek === selectedDay).length === 0 ? (
               <EmptyState
                 icon={CalendarIcon}
-                title={`No Classes on ${getDayName(selectedDay)}`}
-                description="You have no classes scheduled on this day. Use this time for independent study or add a new seminar."
-                actionLabel="Schedule Session on This Day"
+                title={`Không có tiết học vào ${getDayNameVi(selectedDay)}`}
+                description="Bạn không có lịch học nào trong ngày này theo bộ lọc hiện tại. Hãy tận dụng thời gian để tự học hoặc thêm tiết học mới."
+                actionLabel="Xếp lịch tiết học cho ngày này"
                 onAction={() => {
                   setSlotToEdit(null);
                   setIsAddModalOpen(true);
@@ -434,6 +750,7 @@ export const TimetablePage: React.FC = () => {
                 .map((slot) => {
                   const course = courses.find((c) => c.id === slot.courseId);
                   const hasConflict = conflictingSlotIds.has(slot.id);
+                  const recLabel = getRecurrenceLabel(slot, course);
 
                   return (
                     <Card
@@ -446,12 +763,14 @@ export const TimetablePage: React.FC = () => {
                       style={{ borderLeftColor: course?.color || '#4f46e5' }}
                     >
                       <div className="flex items-start gap-4">
-                        {/* Time box */}
-                        <div className="flex flex-col items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 px-3.5 py-2 text-center min-w-[76px] shrink-0">
-                          <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
+                        {/* 24-Hour Time Box */}
+                        <div className="flex flex-col items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 px-3.5 py-2 text-center min-w-[84px] shrink-0">
+                          <span className="font-mono text-xs font-black text-slate-900 dark:text-white">
                             {slot.startTime}
                           </span>
-                          <span className="text-[10px] text-slate-400">to {slot.endTime}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            đến {slot.endTime}
+                          </span>
                         </div>
 
                         <div>
@@ -460,11 +779,11 @@ export const TimetablePage: React.FC = () => {
                               {course?.code} · {course?.name}
                             </span>
                             <Badge variant="brand" size="sm">
-                              {slot.type.toUpperCase()}
+                              {getSlotTypeVi(slot.type)}
                             </Badge>
                             {hasConflict && (
                               <Badge variant="rose" size="sm" dot>
-                                Scheduling Conflict
+                                Trùng lịch học
                               </Badge>
                             )}
                           </div>
@@ -472,7 +791,10 @@ export const TimetablePage: React.FC = () => {
                           <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1">
                             <div className="flex items-center gap-1">
                               <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                              <span>{slot.room ? `${slot.room} · ` : ''}{slot.location}</span>
+                              <span>
+                                {slot.room ? `${slot.room} · ` : ''}
+                                {slot.location}
+                              </span>
                             </div>
                             {(slot.instructor || course?.instructor) && (
                               <div className="flex items-center gap-1">
@@ -485,8 +807,8 @@ export const TimetablePage: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-2 self-end sm:self-center">
-                        <Badge variant="outline" size="sm" className="capitalize">
-                          {slot.recurrence.replace('_', ' ')}
+                        <Badge variant="outline" size="sm" className="font-semibold">
+                          {recLabel}
                         </Badge>
                       </div>
                     </Card>
@@ -537,24 +859,25 @@ export const TimetablePage: React.FC = () => {
       <Modal
         isOpen={!!slotToDelete}
         onClose={() => setSlotToDelete(null)}
-        title="Delete Class Session"
-        description="Are you sure you want to remove this session from your timetable?"
+        title="Xóa tiết học"
+        description="Bạn có chắc chắn muốn xóa tiết học này khỏi thời khóa biểu?"
       >
         <div className="space-y-4">
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            This will permanently remove the class session on{' '}
+            Hành động này sẽ xóa vĩnh viễn tiết học vào{' '}
             <strong>
-              {slotToDelete ? getDayName(slotToDelete.dayOfWeek) : ''} ({slotToDelete?.startTime} - {slotToDelete?.endTime})
+              {slotToDelete ? getDayNameVi(slotToDelete.dayOfWeek) : ''} (
+              {slotToDelete?.startTime} - {slotToDelete?.endTime})
             </strong>{' '}
-            from your weekly timetable.
+            khỏi thời khóa biểu của bạn.
           </p>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" size="sm" onClick={() => setSlotToDelete(null)}>
-              Cancel
+              Hủy
             </Button>
             <Button variant="danger" size="sm" onClick={handleDeleteConfirm}>
-              Delete Session
+              Xóa tiết học
             </Button>
           </div>
         </div>

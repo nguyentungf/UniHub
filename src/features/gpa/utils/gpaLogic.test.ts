@@ -206,6 +206,39 @@ describe('GPA Calculation & Logic Tests', () => {
       assert.equal(summary.ungradedCoursesCount, 2);
     });
 
+    it('CRITICAL: 0-credit courses do NOT affect semester GPA or quality points', () => {
+      const recordsWithZeroCredits: GradeRecord[] = [
+        {
+          id: '1',
+          courseId: 'c1',
+          courseCode: 'CS101',
+          courseName: 'Intro to CS',
+          semesterId: 'sem1',
+          credits: 4,
+          gradePoint: 4.0,
+          status: 'completed',
+        },
+        {
+          id: '2',
+          courseId: 'c2',
+          courseCode: 'PE101',
+          courseName: 'Physical Education',
+          semesterId: 'sem1',
+          credits: 0, // 0-credit course!
+          gradePoint: 4.0, // High grade, but 0 credits
+          status: 'completed',
+        },
+      ];
+
+      const summary = calculateSemesterGpa(recordsWithZeroCredits, scale40, 'sem1', 'Fall 2025');
+      // Only CS101 has credits (4 * 4.0 = 16 QP / 4 = 4.0 GPA)
+      // PE101 has 0 credits (0 * 4.0 = 0 QP, 0 attempted credits)
+      assert.equal(summary.gpa, 4.0);
+      assert.equal(summary.qualityPoints, 16.0);
+      assert.equal(summary.attemptedCredits, 4);
+      assert.equal(summary.totalCredits, 4);
+    });
+
     it('excludes dropped courses from both credits and GPA', () => {
       const recordsWithDropped: GradeRecord[] = [
         {
@@ -320,6 +353,22 @@ describe('GPA Calculation & Logic Tests', () => {
       assert.equal(cumulative.totalCreditsEarned, 33);
       assert.equal(cumulative.cumulativeGpa, 3.74);
       assert.equal(cumulative.academicStanding.title, 'Summa Cum Laude');
+    });
+
+    it('CRITICAL: 0-credit courses do NOT affect cumulative GPA (CPA)', () => {
+      const semesters: Semester[] = [
+        { id: 'sem1', name: 'Fall 2025', startDate: '2025-09-01', endDate: '2025-12-28', isCurrent: false },
+      ];
+      const records: GradeRecord[] = [
+        { id: '1', courseId: 'c1', courseCode: 'C1', courseName: 'C1', semesterId: 'sem1', credits: 4, gradePoint: 3.5, status: 'completed' },
+        { id: '2', courseId: 'c2', courseCode: 'PE101', courseName: 'PE', semesterId: 'sem1', credits: 0, gradePoint: 4.0, status: 'completed' },
+      ];
+
+      const cumulative = calculateCumulativeGpa(records, semesters, scale40);
+      assert.equal(cumulative.cumulativeGpa, 3.5);
+      assert.equal(cumulative.totalQualityPoints, 14.0);
+      assert.equal(cumulative.totalCreditsAttempted, 4);
+      assert.equal(cumulative.totalCreditsEarned, 4);
     });
 
     it('returns 0 when no courses have been graded', () => {

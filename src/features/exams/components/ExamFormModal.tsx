@@ -183,11 +183,11 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'Edit Examination' : 'Schedule New Examination'}
+      title={isEditing ? 'Chỉnh sửa kỳ thi' : 'Lên lịch kỳ thi mới'}
       description={
         isEditing
-          ? 'Update exam date, hall location, seat allocation, and syllabus checklist'
-          : 'Register a midterm, final exam, lab practical, or quiz'
+          ? 'Cập nhật ngày thi, phòng thi, số báo danh và danh mục ôn tập'
+          : 'Đăng ký thi giữa kỳ, cuối kỳ, thực hành hoặc kiểm tra định kỳ'
       }
       size="lg"
     >
@@ -200,7 +200,7 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Select
-            label="Course *"
+            label="Môn học *"
             value={courseId}
             onChange={(e) => setCourseId(e.target.value)}
             options={courses.map((c) => ({
@@ -212,22 +212,22 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
           />
 
           <Select
-            label="Exam Type *"
+            label="Loại kỳ thi *"
             value={examType}
             onChange={(e) => setExamType(e.target.value as ExamType)}
             options={[
-              { value: 'midterm', label: 'Midterm Exam' },
-              { value: 'final', label: 'Final Exam' },
-              { value: 'quiz', label: 'Quiz' },
-              { value: 'practical', label: 'Lab Practical' },
+              { value: 'midterm', label: 'Thi giữa kỳ' },
+              { value: 'final', label: 'Thi cuối kỳ' },
+              { value: 'quiz', label: 'Kiểm tra ngắn / Quiz' },
+              { value: 'practical', label: 'Thi thực hành / Lab' },
             ]}
             error={errors.examType}
           />
         </div>
 
         <Input
-          label="Exam Title *"
-          placeholder="e.g. Midterm Examination - Algorithms & Graphs"
+          label="Kỳ thi *"
+          placeholder="VD: Thi giữa kỳ"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           error={errors.title}
@@ -235,17 +235,10 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Input
-            label="Date & Time *"
-            type="datetime-local"
-            value={examDate}
-            onChange={(e) => setExamDate(e.target.value)}
-            error={errors.examDate}
-            required
-          />
+          
 
           <Input
-            label="Duration (Minutes) *"
+            label="Thời lượng (Phút) *"
             type="number"
             min="1"
             max="600"
@@ -256,14 +249,13 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
           />
 
           <Select
-            label="Status *"
+            label="Trạng thái *"
             value={status}
             onChange={(e) => setStatus(e.target.value as ExamStatus)}
             options={[
-              { value: 'upcoming', label: 'Upcoming / Scheduled' },
-              { value: 'in_progress', label: 'In Progress' },
-              { value: 'completed', label: 'Completed' },
-              { value: 'cancelled', label: 'Cancelled' },
+              { value: 'upcoming', label: 'Sắp diễn ra' },
+              { value: 'completed', label: 'Đã hoàn thành' },
+              { value: 'cancelled', label: 'Đã hủy' },
             ]}
             error={errors.status}
           />
@@ -271,8 +263,8 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input
-            label="Exam Location / Room *"
-            placeholder="e.g. Science Complex - Hall A"
+            label="Địa điểm / Phòng thi *"
+            placeholder="VD: Nhà D9 - Phòng 302"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             error={errors.location}
@@ -280,17 +272,26 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
           />
 
           <Input
-            label="Allocated Seat Number"
-            placeholder="e.g. Row 3, Seat 14"
+            label="Ngày & Giờ thi *"
+            type="datetime-local"
+            value={examDate}
+            onChange={(e) => setExamDate(e.target.value)}
+            error={errors.examDate}
+            required
+          />
+
+          {/* <Input
+            label="Số báo danh / Vị trí ngồi"
+            placeholder="VD: Bàn 3, SBD 14"
             value={seatNumber}
             onChange={(e) => setSeatNumber(e.target.value)}
             error={errors.seatNumber}
-          />
+          /> */}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Input
-            label="Grade Weight (%)"
+            label="Trọng số điểm (%)"
             type="number"
             min="0"
             max="100"
@@ -302,7 +303,7 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
           />
 
           <Input
-            label="Target Score (0-100)"
+            label="Điểm mục tiêu"
             type="number"
             min="0"
             max="100"
@@ -313,11 +314,11 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
           />
 
           <Input
-            label="Actual Score (If completed)"
+            label="Điểm thực tế"
             type="number"
             min="0"
             max="100"
-            placeholder="e.g. 92"
+            placeholder="VD: 92"
             value={actualScore}
             onChange={(e) => setActualScore(e.target.value)}
             error={errors.actualScore}
@@ -327,11 +328,11 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
         {/* Dynamic Revision Topics Checklist Editor */}
         <div className="space-y-2 pt-1">
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-            Revision Checklist Topics
+            Danh mục chủ đề ôn thi
           </label>
           <div className="flex gap-2">
             <Input
-              placeholder="Add revision topic or chapter..."
+              placeholder="Thêm chủ đề ôn tập hoặc chương kiến thức..."
               value={newTopicInput}
               onChange={(e) => setNewTopicInput(e.target.value)}
               onKeyDown={(e) => {
@@ -349,7 +350,7 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
               leftIcon={<Plus className="h-4 w-4" />}
               onClick={handleAddTopic}
             >
-              Add
+              Thêm
             </Button>
           </div>
 
@@ -375,15 +376,15 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
         </div>
 
         <Textarea
-          label="Preparation Notes & Permitted Materials"
-          placeholder="e.g. Permitted 1 double-sided A4 formula cheat sheet, non-programmable calculator..."
+          label="Ghi chú chuẩn bị & Tài liệu được mang"
+          placeholder="VD: Được mang 1 tờ tài liệu A4 viết tay hai mặt, máy tính bỏ túi Casio..."
           rows={2}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           error={errors.notes}
         />
 
-        <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <div className="sticky bottom-0 -mx-6 -mb-5 px-6 py-3.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5 z-10">
           <Button
             type="button"
             variant="outline"
@@ -391,10 +392,10 @@ export const ExamFormModal: React.FC<ExamFormModalProps> = ({
             onClick={onClose}
             disabled={isSubmitting}
           >
-            Cancel
+            Hủy
           </Button>
           <Button type="submit" size="sm" isLoading={isSubmitting}>
-            {isEditing ? 'Update Examination' : 'Schedule Exam'}
+            {isEditing ? 'Cập nhật kỳ thi' : 'Lên lịch thi'}
           </Button>
         </div>
       </form>

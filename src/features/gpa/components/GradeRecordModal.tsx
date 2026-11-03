@@ -196,8 +196,8 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'Edit Course Grade' : 'Add Course Grade Record'}
-      description="Record academic grade points, raw percentage scores, and earned credit units"
+      title={isEditing ? 'Chỉnh sửa bản ghi điểm' : 'Nhập điểm môn học'}
+      description="Ghi nhận điểm số, điểm phần trăm và số tín chỉ tích lũy"
       size="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
@@ -212,18 +212,18 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
         {!isEditing && courses.length > 0 && (
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-              Select Enrolled Course or Enter New
+              Chọn môn học đã đăng ký hoặc nhập môn mới
             </label>
             <select
               value={selectedCourseId}
               onChange={(e) => handleCourseSelect(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-xs dark:border-slate-800 dark:bg-slate-900 dark:text-white"
             >
-              <option value="custom">✏️ Enter New Course / Past Course Record</option>
-              <optgroup label="Your Existing Courses">
+              <option value="custom">✏️ Nhập môn học mới / Môn từ kỳ trước</option>
+              <optgroup label="Các môn học hiện tại của bạn">
                 {courses.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.code} - {c.name} ({c.credits} Cr) [{c.status}]
+                    {c.code} - {c.name} ({c.credits} TC) [{c.status === 'enrolled' ? 'Đang học' : c.status === 'completed' ? 'Hoàn thành' : 'Đã hủy'}]
                   </option>
                 ))}
               </optgroup>
@@ -235,8 +235,8 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <Input
-              label="Course Code *"
-              placeholder="e.g. CS201"
+              label="Mã môn học *"
+              placeholder="VD: CS201"
               value={courseCode}
               onChange={(e) => setCourseCode(e.target.value.toUpperCase())}
               error={errors.courseCode}
@@ -245,8 +245,8 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
           </div>
           <div className="sm:col-span-2">
             <Input
-              label="Course Name *"
-              placeholder="e.g. Data Structures & Algorithms"
+              label="Tên môn học *"
+              placeholder="VD: Cấu trúc dữ liệu & Giải thuật"
               value={courseName}
               onChange={(e) => setCourseName(e.target.value)}
               error={errors.courseName}
@@ -259,7 +259,7 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-              Academic Semester *
+              Học kỳ *
             </label>
             <select
               value={semesterId}
@@ -268,7 +268,7 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
             >
               {semesters.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name} {s.isCurrent ? '(Current)' : ''}
+                  {s.name} {s.isCurrent ? '(Hiện tại)' : ''}
                 </option>
               ))}
             </select>
@@ -281,13 +281,16 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
 
           <div>
             <Input
-              label="Credits (Units) *"
+              label="Số tín chỉ *"
               type="number"
               step="0.5"
-              min="0.5"
+              min="0"
               max="30"
               value={credits}
-              onChange={(e) => setCredits(parseFloat(e.target.value) || 0)}
+              onChange={(e) => {
+                const v = parseFloat(e.target.value);
+                setCredits(isNaN(v) ? 0 : v);
+              }}
               error={errors.credits}
             />
           </div>
@@ -298,10 +301,10 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
               <Award className="h-4 w-4 text-brand-600" />
-              <span>Grade Evaluation</span>
+              <span>Đánh giá điểm số</span>
             </div>
             <Badge variant="brand" size="sm">
-              Active Scale: {scale.name}
+              Thang điểm hiện tại: {scale.name}
             </Badge>
           </div>
 
@@ -309,7 +312,7 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
             {/* Raw Percentage Score */}
             <div>
               <Input
-                label="Percentage Score (%)"
+                label="Điểm hệ 100 (%)"
                 placeholder="0 - 100"
                 type="number"
                 step="0.1"
@@ -318,24 +321,24 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
                 value={percentageScore}
                 onChange={(e) => handlePercentageChange(e.target.value)}
                 error={errors.percentageScore}
-                helperText="Auto-resolves letter & GPA"
+                helperText="Tự động tính điểm chữ & GPA"
               />
             </div>
 
             {/* Letter Grade */}
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                Letter Grade
+                Điểm chữ
               </label>
               <select
                 value={letterGrade}
                 onChange={(e) => handleLetterChange(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-brand-600 shadow-xs dark:border-slate-800 dark:bg-slate-900 dark:text-brand-400"
               >
-                <option value="">-- Select Grade --</option>
+                <option value="">-- Chọn điểm --</option>
                 {scale.tiers.map((t) => (
                   <option key={t.letter} value={t.letter}>
-                    {t.letter} ({t.gradePoint.toFixed(2)} pts · {t.minPercentage}%+)
+                    {t.letter} ({t.gradePoint.toFixed(2)})
                   </option>
                 ))}
               </select>
@@ -349,8 +352,8 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
             {/* Grade Point (Direct) */}
             <div>
               <Input
-                label={`Grade Point (0 - ${scale.maxGpa})`}
-                placeholder={`Max: ${scale.maxGpa}`}
+                label={`Điểm hệ số (0 - ${scale.maxGpa})`}
+                placeholder={`Tối đa: ${scale.maxGpa}`}
                 type="number"
                 step="0.01"
                 min="0"
@@ -358,14 +361,14 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
                 value={gradePoint}
                 onChange={(e) => setGradePoint(e.target.value)}
                 error={errors.gradePoint}
-                helperText="Direct Quality Point weight"
+                helperText="Điểm chất lượng tính trực tiếp"
               />
             </div>
           </div>
 
           {/* Quality Point Preview */}
           <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800">
-            <span className="text-slate-500">Calculated Quality Points (QP):</span>
+            <span className="text-slate-500">Điểm chất lượng tính được (QP):</span>
             <span className="font-mono font-bold text-brand-600 dark:text-brand-400 text-sm">
               {((parseFloat(gradePoint) || 0) * (Number(credits) || 0)).toFixed(2)} QP
             </span>
@@ -376,7 +379,7 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-              Course Status
+              Trạng thái môn học
             </label>
             <select
               value={status}
@@ -385,16 +388,16 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
               }
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-xs dark:border-slate-800 dark:bg-slate-900 dark:text-white"
             >
-              <option value="completed">Completed (Counts toward Earned Credits & GPA)</option>
-              <option value="enrolled">Enrolled / In Progress (Projected/Ungraded)</option>
-              <option value="dropped">Dropped / Withdrawn (Excluded from GPA)</option>
+              <option value="completed">Hoàn thành (Tính vào tín chỉ tích lũy & GPA)</option>
+              <option value="enrolled">Đang học (Chưa có điểm / Tạm tính)</option>
+              <option value="dropped">Đã hủy (Không tính vào GPA)</option>
             </select>
           </div>
 
           <div>
             <Input
-              label="Notes (Optional)"
-              placeholder="e.g. Transferred credit, Dean's commendation"
+              label="Ghi chú (Tùy chọn)"
+              placeholder="VD: Chuyển đổi tín chỉ, Khen thưởng..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
@@ -402,12 +405,12 @@ export const GradeRecordModal: React.FC<GradeRecordModalProps> = ({
         </div>
 
         {/* Modal Actions */}
-        <div className="flex justify-end items-center gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+        <div className="sticky bottom-0 -mx-6 -mb-5 px-6 py-3.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 z-10">
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-            Cancel
+            Hủy
           </Button>
           <Button type="submit" variant="primary" isLoading={isSubmitting}>
-            {isEditing ? 'Save Changes' : 'Record Grade'}
+            {isEditing ? 'Lưu thay đổi' : 'Nhập điểm'}
           </Button>
         </div>
       </form>

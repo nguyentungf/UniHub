@@ -56,15 +56,15 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
   }, [isOpen]);
 
   const navigationItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, category: 'Navigation' },
-    { name: 'Courses Catalog', path: '/courses', icon: BookOpen, category: 'Navigation' },
-    { name: 'Weekly Timetable', path: '/timetable', icon: Calendar, category: 'Navigation' },
-    { name: 'Assignments & Deadlines', path: '/assignments', icon: CheckSquare, category: 'Navigation' },
-    { name: 'Exam Hub & Schedule', path: '/exams', icon: GraduationCap, category: 'Navigation' },
-    { name: 'GPA Calculator & Simulator', path: '/gpa', icon: Sparkles, category: 'Navigation' },
-    { name: 'Study Tracker & Pomodoro', path: '/study', icon: Clock, category: 'Navigation' },
-    { name: 'Notes & Knowledge Vault', path: '/notes', icon: FileText, category: 'Navigation' },
-    { name: 'Application Settings', path: '/settings', icon: Settings, category: 'Navigation' },
+    { name: 'Tổng quan học tập', path: '/dashboard', icon: LayoutDashboard, category: 'Điều hướng' },
+    { name: 'Danh mục môn học', path: '/courses', icon: BookOpen, category: 'Điều hướng' },
+    { name: 'Thời khóa biểu tuần', path: '/timetable', icon: Calendar, category: 'Điều hướng' },
+    { name: 'Bài tập & Hạn nộp', path: '/assignments', icon: CheckSquare, category: 'Điều hướng' },
+    { name: 'Lịch thi & Ôn tập', path: '/exams', icon: GraduationCap, category: 'Điều hướng' },
+    { name: 'Tính điểm & GPA', path: '/gpa', icon: Sparkles, category: 'Điều hướng' },
+    { name: 'Đồng hồ Pomodoro', path: '/study', icon: Clock, category: 'Điều hướng' },
+    { name: 'Sổ tay ghi chép', path: '/notes', icon: FileText, category: 'Điều hướng' },
+    { name: 'Cài đặt hệ thống', path: '/settings', icon: Settings, category: 'Điều hướng' },
   ];
 
   const filteredResults = useMemo(() => {
@@ -129,7 +129,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
           <input
             autoFocus
             type="text"
-            placeholder="Type a command or search anything (e.g. CS201, Exam, GPA)..."
+            placeholder="Nhập lệnh hoặc tìm kiếm (vd: CS201, thi giữa kỳ, GPA)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="h-12 w-full bg-transparent px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-white dark:placeholder:text-slate-500"
@@ -145,7 +145,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
           {filteredResults.nav.length > 0 && (
             <div>
               <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Pages & Navigation
+                Trang & Điều hướng
               </p>
               <div className="space-y-1">
                 {filteredResults.nav.map((item) => {
@@ -172,7 +172,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
           {filteredResults.courses.length > 0 && (
             <div>
               <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Courses
+                Môn học
               </p>
               <div className="space-y-1">
                 {filteredResults.courses.map((course) => (
@@ -194,7 +194,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                       </span>
                     </div>
                     <span className="text-[11px] text-slate-400 font-mono">
-                      {course.credits} cr
+                      {course.credits} tín chỉ
                     </span>
                   </button>
                 ))}
@@ -206,7 +206,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
           {filteredResults.assignments.length > 0 && (
             <div>
               <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Assignments & Tasks
+                Bài tập & Nhiệm vụ
               </p>
               <div className="space-y-1">
                 {filteredResults.assignments.map((assignment) => (
@@ -234,7 +234,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
           {filteredResults.exams && filteredResults.exams.length > 0 && (
             <div>
               <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Exams & Tests
+                Lịch thi & Kiểm tra
               </p>
               <div className="space-y-1">
                 {filteredResults.exams.map((exam) => (
@@ -262,7 +262,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
           {filteredResults.notes && filteredResults.notes.length > 0 && (
             <div>
               <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Notes
+                Ghi chú & Tài liệu
               </p>
               <div className="space-y-1">
                 {filteredResults.notes.map((note) => (
@@ -291,16 +291,16 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
 
         {/* Footer shortcuts */}
         <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/60 px-4 py-2 text-[11px] text-slate-400 dark:border-slate-800/80 dark:bg-slate-900/40">
-          <span>Navigation tip</span>
+          <span>Phím tắt điều hướng</span>
           <div className="flex items-center gap-3">
             <span>
-              <kbd className="rounded border px-1 py-0.5 dark:border-slate-700">↑↓</kbd> navigate
+              <kbd className="rounded border px-1 py-0.5 dark:border-slate-700">↑↓</kbd> di chuyển
             </span>
             <span>
-              <kbd className="rounded border px-1 py-0.5 dark:border-slate-700">↵</kbd> select
+              <kbd className="rounded border px-1 py-0.5 dark:border-slate-700">↵</kbd> chọn
             </span>
             <span>
-              <kbd className="rounded border px-1 py-0.5 dark:border-slate-700">esc</kbd> close
+              <kbd className="rounded border px-1 py-0.5 dark:border-slate-700">esc</kbd> đóng
             </span>
           </div>
         </div>

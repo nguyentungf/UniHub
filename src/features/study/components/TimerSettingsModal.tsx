@@ -42,15 +42,15 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Pomodoro Timer Settings"
-      description="Customize your focus intervals, rest breaks, and study habits"
+      title="Cài đặt đồng hồ Pomodoro"
+      description="Tùy chỉnh khoảng thời gian tập trung, thời gian nghỉ và thói quen học tập"
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Focus Work (min)
+              Thời gian tập trung (phút)
             </label>
             <input
               type="number"
@@ -65,7 +65,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Short Break (min)
+              Nghỉ ngắn (phút)
             </label>
             <input
               type="number"
@@ -80,7 +80,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Long Break (min)
+              Nghỉ dài (phút)
             </label>
             <input
               type="number"
@@ -96,7 +96,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 
         <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80">
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Long Break Interval (every N cycles)
+            Chu kỳ nghỉ dài (mỗi N phiên)
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -109,7 +109,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
               required
             />
             <span className="text-xs text-slate-500">
-              Take a long break after every {longBreakInterval} completed pomodoros
+              Nghỉ dài sau mỗi {longBreakInterval} phiên Pomodoro hoàn thành
             </span>
           </div>
         </div>
@@ -123,7 +123,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
               className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
             />
             <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-              Automatically start rest breaks when a pomodoro finishes
+              Tự động bắt đầu nghỉ giải lao khi hoàn thành phiên Pomodoro
             </span>
           </label>
 
@@ -136,17 +136,17 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
             />
             <span className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
               <Bell className="h-3.5 w-3.5 text-slate-400" />
-              Play gentle audio chime upon session completion (offline)
+              Phát âm thanh chuông nhẹ khi hoàn thành phiên học
             </span>
           </label>
         </div>
 
-        <div className="pt-4 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="sticky bottom-0 -mx-6 -mb-5 px-6 py-3.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 z-10">
           <Button type="button" variant="outline" size="sm" onClick={onClose}>
-            Cancel
+            Hủy
           </Button>
           <Button type="submit" size="sm">
-            Save Preferences
+            Lưu cài đặt
           </Button>
         </div>
       </form>

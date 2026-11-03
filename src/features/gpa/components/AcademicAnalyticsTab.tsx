@@ -60,57 +60,57 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
       {/* Analytics Metric Highlights Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Degree Credits Progress"
+          title="Tiến độ tín chỉ tốt nghiệp"
           value={`${creditAnalytics.totalEarnedCredits} / ${creditAnalytics.degreeTargetCredits}`}
-          subtitle={`${creditAnalytics.completionRate}% of Graduation Target`}
+          subtitle={`${creditAnalytics.completionRate}% mục tiêu tốt nghiệp`}
           icon={BookOpen}
           iconColor="sky"
           progress={{
             current: creditAnalytics.totalEarnedCredits,
             total: creditAnalytics.degreeTargetCredits,
-            unit: 'Credits',
+            unit: 'Tín chỉ',
           }}
           trend={{
-            value: `${creditAnalytics.creditsRemaining} credits remaining`,
+            value: `Còn ${creditAnalytics.creditsRemaining} tín chỉ nữa`,
             positive: true,
           }}
         />
 
         <StatCard
-          title="Course Completion"
+          title="Tỷ lệ hoàn thành môn học"
           value={`${courseCompletionStats.completionRate}%`}
-          subtitle={`${courseCompletionStats.completedCourses} Completed · ${courseCompletionStats.enrolledCourses} Active`}
+          subtitle={`${courseCompletionStats.completedCourses} Đã xong · ${courseCompletionStats.enrolledCourses} Đang học`}
           icon={Layers}
           iconColor="emerald"
           trend={{
-            value: `${courseCompletionStats.totalCourses} Total Courses (${courseCompletionStats.droppedCourses} dropped)`,
+            value: `Tổng ${courseCompletionStats.totalCourses} môn (${courseCompletionStats.droppedCourses} đã hủy)`,
             positive: courseCompletionStats.droppedCourses === 0,
           }}
         />
 
         <StatCard
-          title="Total Study Hours"
+          title="Tổng thời gian học tập"
           value={`${studyAnalytics.totalHours}h`}
-          subtitle={`★ ${studyAnalytics.averageFocusRating} / 5.0 Focus Rating`}
+          subtitle={`★ ${studyAnalytics.averageFocusRating} / 5.0 Độ tập trung`}
           icon={Clock}
           iconColor="indigo"
           trend={{
-            value: `${studyAnalytics.totalSessions} sessions · Avg ${studyAnalytics.averageSessionMinutes}m`,
+            value: `${studyAnalytics.totalSessions} phiên · Trung bình ${studyAnalytics.averageSessionMinutes}p`,
             positive: true,
           }}
         />
 
         <StatCard
-          title="Assignment Velocity"
+          title="Tiến độ bài tập"
           value={`${assignmentAnalytics.completionRate}%`}
-          subtitle={`${assignmentAnalytics.completedCount} of ${assignmentAnalytics.total} Done`}
+          subtitle={`${assignmentAnalytics.completedCount} / ${assignmentAnalytics.total} Hoàn thành`}
           icon={CheckSquare}
           iconColor="amber"
           trend={{
             value:
               assignmentAnalytics.averageScore !== null
-                ? `Avg Score: ${assignmentAnalytics.averageScore}%`
-                : `${assignmentAnalytics.urgentCount + assignmentAnalytics.highCount} priority tasks`,
+                ? `Điểm trung bình: ${assignmentAnalytics.averageScore}%`
+                : `${assignmentAnalytics.urgentCount + assignmentAnalytics.highCount} bài tập ưu tiên`,
             positive: assignmentAnalytics.urgentCount === 0,
           }}
         />
@@ -125,21 +125,21 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
               <div>
                 <CardTitle className="text-sm font-bold flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-                  <span>GPA History & Progression Curve</span>
+                  <span>Lịch sử & Biểu đồ tiến trình GPA</span>
                 </CardTitle>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Semester GPA vs Cumulative GPA trajectory across academic terms
+                  Diễn biến GPA học kỳ so với GPA tích lũy qua các kỳ học
                 </p>
               </div>
 
               <div className="flex items-center gap-3 text-xs">
                 <span className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-brand-600"></span>
-                  <span className="text-slate-600 dark:text-slate-400">Term GPA</span>
+                  <span className="text-slate-600 dark:text-slate-400">GPA Học kỳ</span>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-                  <span className="text-slate-600 dark:text-slate-400">Cumulative</span>
+                  <span className="text-slate-600 dark:text-slate-400">GPA Tích lũy</span>
                 </span>
               </div>
             </CardHeader>
@@ -176,7 +176,7 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
                       stroke="#f59e0b"
                       strokeDasharray="4 4"
                       label={{
-                        value: "Dean's Honor Target",
+                        value: "Mục tiêu Xuất sắc",
                         position: 'insideBottomRight',
                         fill: '#d97706',
                         fontSize: 10,
@@ -185,7 +185,7 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
                     <Line
                       type="monotone"
                       dataKey="semesterGpa"
-                      name="Term GPA"
+                      name="GPA Học kỳ"
                       stroke="#4f46e5"
                       strokeWidth={3}
                       dot={{ r: 4, fill: '#4f46e5' }}
@@ -194,7 +194,7 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
                     <Line
                       type="monotone"
                       dataKey="cumulativeGpa"
-                      name="Cumulative GPA"
+                      name="GPA Tích lũy"
                       stroke="#10b981"
                       strokeWidth={3}
                       strokeDasharray="3 3"
@@ -216,7 +216,7 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
                       {h.semesterGpa.toFixed(2)} GPA
                     </span>
                     <span className="text-[10px] text-slate-400 block">
-                      {h.creditsEarned} Cr · Cum: {h.cumulativeGpa.toFixed(2)}
+                      {h.creditsEarned} TC · Tích lũy: {h.cumulativeGpa.toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -231,10 +231,10 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 <BarChart2 className="h-4 w-4 text-emerald-500" />
-                <span>Grade Distribution</span>
+                <span>Phân bố điểm số</span>
               </CardTitle>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Frequency count of letter grades earned
+                Tần suất các điểm chữ đạt được
               </p>
             </CardHeader>
             <CardContent>
@@ -265,7 +265,7 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
                         color: '#fff',
                         fontSize: '11px',
                       }}
-                      formatter={(val: number) => [`${val} courses`, 'Count']}
+                      formatter={(val: number) => [`${val} môn`, 'Số lượng']}
                     />
                     <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                       {courseCompletionStats.gradeDistribution.map((entry, index) => {
@@ -283,10 +283,10 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
               </div>
 
               <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-slate-500">Highest Frequency:</span>
+                <span className="text-slate-500">Điểm chữ phổ biến nhất:</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200">
                   {courseCompletionStats.gradeDistribution[0]?.letter || 'A'} (
-                  {courseCompletionStats.gradeDistribution[0]?.count || 0} Courses)
+                  {courseCompletionStats.gradeDistribution[0]?.count || 0} môn)
                 </span>
               </div>
             </CardContent>
@@ -301,16 +301,16 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-bold flex items-center gap-2">
               <Clock className="h-4 w-4 text-indigo-500" />
-              <span>Study Hours by Subject</span>
+              <span>Thời lượng học theo môn</span>
             </CardTitle>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Logged Pomodoro and stopwatch focus allocation
+              Phân bổ thời gian Pomodoro và đồng hồ bấm giờ
             </p>
           </CardHeader>
           <CardContent className="space-y-3 pt-2">
             {studyAnalytics.studyTimeByCourse.length === 0 ? (
               <p className="text-xs text-slate-400 py-6 text-center">
-                No study sessions logged yet.
+                Chưa có phiên học nào được ghi lại.
               </p>
             ) : (
               studyAnalytics.studyTimeByCourse.map((item) => (
@@ -343,10 +343,10 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-bold flex items-center gap-2">
               <Flame className="h-4 w-4 text-amber-500" />
-              <span>7-Day Study Consistency</span>
+              <span>Độ chuyên cần học tập 7 ngày qua</span>
             </CardTitle>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Daily logged study hours over the past week
+              Số giờ học tập được ghi lại hàng ngày trong tuần qua
             </p>
           </CardHeader>
           <CardContent>
@@ -364,7 +364,7 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
                       color: '#fff',
                       fontSize: '11px',
                     }}
-                    formatter={(val: number) => [`${val} hours`, 'Study Time']}
+                    formatter={(val: number) => [`${val} giờ`, 'Thời gian học']}
                   />
                   <Bar dataKey="hours" fill="#6366f1" radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -382,10 +382,10 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-brand-600" />
-                <span>Weekly Academic Summary</span>
+                <span>Tổng kết học tập tuần này</span>
               </CardTitle>
               <Badge variant="brand" size="sm">
-                Score: {academicSummaries.weekly.momentumScore}/100
+                Điểm năng suất: {academicSummaries.weekly.momentumScore}/100
               </Badge>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -395,19 +395,19 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
           <CardContent className="pt-2">
             <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-center">
               <div>
-                <span className="text-[10px] text-slate-400 block">Study Hours</span>
+                <span className="text-[10px] text-slate-400 block">Giờ học</span>
                 <span className="text-sm font-bold font-mono text-brand-600 dark:text-brand-400">
                   {academicSummaries.weekly.studyHours}h
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block">Assignments</span>
+                <span className="text-[10px] text-slate-400 block">Bài tập xong</span>
                 <span className="text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400">
                   {academicSummaries.weekly.assignmentsCompleted}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block">Exams</span>
+                <span className="text-[10px] text-slate-400 block">Kỳ thi đã qua</span>
                 <span className="text-sm font-bold font-mono text-amber-600 dark:text-amber-400">
                   {academicSummaries.weekly.examsHandled}
                 </span>
@@ -422,10 +422,10 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-emerald-600" />
-                <span>Monthly Academic Summary</span>
+                <span>Tổng kết học tập tháng này</span>
               </CardTitle>
               <Badge variant="emerald" size="sm">
-                Score: {academicSummaries.monthly.momentumScore}/100
+                Điểm năng suất: {academicSummaries.monthly.momentumScore}/100
               </Badge>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -435,19 +435,19 @@ export const AcademicAnalyticsTab: React.FC<AcademicAnalyticsTabProps> = ({
           <CardContent className="pt-2">
             <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-center">
               <div>
-                <span className="text-[10px] text-slate-400 block">Total Focus</span>
+                <span className="text-[10px] text-slate-400 block">Tổng giờ học</span>
                 <span className="text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400">
                   {academicSummaries.monthly.studyHours}h
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block">Tasks Done</span>
+                <span className="text-[10px] text-slate-400 block">Bài tập xong</span>
                 <span className="text-sm font-bold font-mono text-brand-600 dark:text-brand-400">
                   {academicSummaries.monthly.assignmentsCompleted}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block">Exams Handled</span>
+                <span className="text-[10px] text-slate-400 block">Kỳ thi đã qua</span>
                 <span className="text-sm font-bold font-mono text-amber-600 dark:text-amber-400">
                   {academicSummaries.monthly.examsHandled}
                 </span>

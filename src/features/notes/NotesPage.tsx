@@ -70,11 +70,11 @@ export const NotesPage: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
-        title="Knowledge Vault & Notes"
-        subtitle="Markdown lecture notes, algorithm summaries, and cross-course revision tags"
+        title="Kho tri thức & Ghi chú"
+        subtitle="Ghi chú bài giảng Markdown, tóm tắt thuật toán và phân loại ôn tập theo môn học"
         badge={
           <Badge variant="brand">
-            {notes.length} Total Note{notes.length === 1 ? '' : 's'}
+            {notes.length} Ghi chú
           </Badge>
         }
         actions={
@@ -83,7 +83,7 @@ export const NotesPage: React.FC = () => {
             leftIcon={<Plus className="h-4 w-4" />}
             onClick={() => setIsCreateModalOpen(true)}
           >
-            Create Note
+            Tạo ghi chú mới
           </Button>
         }
       />
@@ -93,7 +93,7 @@ export const NotesPage: React.FC = () => {
         <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between dark:bg-rose-950/40 dark:border-rose-900/60 dark:text-rose-300">
           <span>{error}</span>
           <Button size="xs" variant="outline" onClick={loadNotes} leftIcon={<RefreshCw className="h-3 w-3" />}>
-            Retry
+            Thử lại
           </Button>
         </div>
       )}
@@ -134,9 +134,9 @@ export const NotesPage: React.FC = () => {
             <div className="min-h-[500px] flex items-center justify-center p-8 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50">
               <EmptyState
                 icon={FileText}
-                title="No Note Selected"
-                description="Select a note from the list on the left to read, or create a new note."
-                actionLabel="Create Note"
+                title="Chưa chọn ghi chú nào"
+                description="Chọn một ghi chú từ danh sách bên trái để xem nội dung, hoặc tạo một ghi chú mới."
+                actionLabel="Tạo ghi chú"
                 onAction={() => setIsCreateModalOpen(true)}
               />
             </div>

@@ -47,7 +47,7 @@ export const NoteListSidebar: React.FC<NoteListSidebarProps> = ({
       <div className="flex items-center gap-2">
         <div className="flex-1">
           <Input
-            placeholder="Search notes, markdown..."
+            placeholder="Tìm kiếm ghi chú, nội dung..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             leftIcon={<Search className="h-4 w-4" />}
@@ -59,7 +59,7 @@ export const NoteListSidebar: React.FC<NoteListSidebarProps> = ({
           onClick={onCreateNewNote}
           className="shrink-0"
         >
-          New Note
+          Ghi chú mới
         </Button>
       </div>
 
@@ -70,7 +70,7 @@ export const NoteListSidebar: React.FC<NoteListSidebarProps> = ({
           onChange={(e) => onCourseChange(e.target.value)}
           className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 dark:border-slate-700 dark:bg-slate-850 dark:text-slate-100 shadow-xs cursor-pointer focus:ring-2 focus:ring-brand-500"
         >
-          <option value="all">All Courses & General</option>
+          <option value="all">Tất cả môn học & Tự do</option>
           {courses.map((c) => (
             <option key={c.id} value={c.id}>
               {c.code} · {c.name}
@@ -89,7 +89,7 @@ export const NoteListSidebar: React.FC<NoteListSidebarProps> = ({
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
           }`}
         >
-          All Tags
+          Tất cả thẻ
         </button>
         {uniqueTags.map(({ tag, count }) => (
           <button
@@ -120,9 +120,9 @@ export const NoteListSidebar: React.FC<NoteListSidebarProps> = ({
         {notes.length === 0 ? (
           <EmptyState
             icon={FileText}
-            title="No Notes Found"
-            description="No notes match your active search or filters. Click below to compose one."
-            actionLabel="Create Note"
+            title="Không tìm thấy ghi chú nào"
+            description="Không có ghi chú nào phù hợp với bộ lọc tìm kiếm. Nhấn bên dưới để tạo mới."
+            actionLabel="Tạo ghi chú"
             onAction={onCreateNewNote}
           />
         ) : (
@@ -165,14 +165,14 @@ export const NoteListSidebar: React.FC<NoteListSidebarProps> = ({
                         ? 'text-amber-500 hover:text-amber-600'
                         : 'text-slate-300 hover:text-slate-500 dark:text-slate-600'
                     }`}
-                    title={note.isPinned ? 'Unpin note' : 'Pin to top'}
+                    title={note.isPinned ? 'Bỏ ghim ghi chú' : 'Ghim lên đầu'}
                   >
                     <Pin className="h-3.5 w-3.5 fill-current" />
                   </button>
                 </div>
 
                 <p className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                  {note.content.replace(/#|\*|`|>|\|/g, '').trim() || 'No preview content available'}
+                  {note.content.replace(/#|\*|`|>|\|/g, '').trim() || 'Không có nội dung xem trước'}
                 </p>
 
                 <div className="mt-3 flex items-center justify-between text-[10px] text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800/80">

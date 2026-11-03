@@ -5,3 +5,4 @@ export * from './useExamStore';
 export * from './useStudyStore';
 export * from './useGpaStore';
 export * from './useNoteStore';
+export * from './useSettingsStore';

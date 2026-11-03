@@ -75,7 +75,7 @@ export const StudyHistoryTable: React.FC<StudyHistoryTableProps> = ({
       <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <CardTitle className="text-sm flex items-center gap-2">
           <Calendar className="h-4 w-4 text-brand-500" />
-          <span>Study Session History ({filteredSessions.length})</span>
+          <span>Lịch sử phiên học ({filteredSessions.length})</span>
         </CardTitle>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -85,8 +85,8 @@ export const StudyHistoryTable: React.FC<StudyHistoryTableProps> = ({
             onChange={(e) => setSelectedCourseFilter(e.target.value)}
             className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 dark:border-slate-700 dark:bg-slate-850 dark:text-slate-100 shadow-xs cursor-pointer focus:ring-2 focus:ring-brand-500"
           >
-            <option value="all">All Courses</option>
-            <option value="general">General / Unassigned</option>
+            <option value="all">Tất cả môn học</option>
+            <option value="general">Tự học chung / Không gắn môn</option>
             {courses.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.code} · {c.name}
@@ -97,7 +97,7 @@ export const StudyHistoryTable: React.FC<StudyHistoryTableProps> = ({
           {/* Quick Search */}
           <div className="w-48">
             <Input
-              placeholder="Search notes / type..."
+              placeholder="Tìm theo ghi chú / phân loại..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               leftIcon={<Search className="h-3.5 w-3.5" />}
@@ -111,7 +111,7 @@ export const StudyHistoryTable: React.FC<StudyHistoryTableProps> = ({
             leftIcon={<Plus className="h-3.5 w-3.5" />}
             onClick={onOpenLogModal}
           >
-            Log Offline Session
+            Ghi nhận phiên học
           </Button>
         </div>
       </CardHeader>
@@ -121,10 +121,10 @@ export const StudyHistoryTable: React.FC<StudyHistoryTableProps> = ({
           <div className="py-12 text-center">
             <Clock className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-600 mb-2" />
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-              No study sessions found
+              Chưa có phiên học nào
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              Start a Pomodoro interval above or log an offline study block
+              Bắt đầu một phiên Pomodoro ở trên hoặc ghi nhận thời gian tự học
             </p>
           </div>
         ) : (
@@ -132,13 +132,13 @@ export const StudyHistoryTable: React.FC<StudyHistoryTableProps> = ({
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold">
                 <tr>
-                  <th className="pb-3">Course</th>
-                  <th className="pb-3">Date & Time</th>
-                  <th className="pb-3">Duration</th>
-                  <th className="pb-3">Type</th>
-                  <th className="pb-3">Focus Depth</th>
-                  <th className="pb-3">Notes</th>
-                  <th className="pb-3 text-right">Action</th>
+                  <th className="pb-3">Môn học</th>
+                  <th className="pb-3">Thời gian</th>
+                  <th className="pb-3">Thời lượng</th>
+                  <th className="pb-3">Hình thức</th>
+                  <th className="pb-3">Độ tập trung</th>
+                  <th className="pb-3">Ghi chú</th>
+                  <th className="pb-3 text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-slate-700 dark:text-slate-300">
@@ -159,7 +159,7 @@ export const StudyHistoryTable: React.FC<StudyHistoryTableProps> = ({
                           </span>
                         ) : (
                           <span className="font-mono font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200 text-[11px]">
-                            General
+                            Tự học chung
                           </span>
                         )}
                       </td>
@@ -180,7 +180,7 @@ export const StudyHistoryTable: React.FC<StudyHistoryTableProps> = ({
                           }
                           size="sm"
                         >
-                          {sess.sessionType.toUpperCase()}
+                          {sess.sessionType === 'pomodoro' ? 'POMODORO' : sess.sessionType === 'stopwatch' ? 'BẤM GIỜ' : 'THỦ CÔNG'}
                         </Badge>
                       </td>
                       <td className="py-3">
@@ -197,7 +197,7 @@ export const StudyHistoryTable: React.FC<StudyHistoryTableProps> = ({
                         <button
                           onClick={() => setSessionToDelete(sess)}
                           className="p-1 rounded text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
-                          title="Delete session record"
+                          title="Xóa phiên học"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -215,9 +215,9 @@ export const StudyHistoryTable: React.FC<StudyHistoryTableProps> = ({
         isOpen={sessionToDelete !== null}
         onClose={() => setSessionToDelete(null)}
         onConfirm={handleDeleteConfirm}
-        title="Delete Study Record"
-        description="Are you sure you want to delete this study session? This action will adjust your study analytics and cannot be undone."
-        confirmText="Delete Record"
+        title="Xóa phiên học"
+        description="Bạn có chắc chắn muốn xóa phiên học này? Hành động này sẽ cập nhật lại các chỉ số thống kê học tập và không thể hoàn tác."
+        confirmText="Xóa phiên học"
         variant="danger"
         isLoading={isDeleting}
       />

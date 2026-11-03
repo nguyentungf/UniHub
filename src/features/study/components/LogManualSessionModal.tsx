@@ -44,7 +44,7 @@ export const LogManualSessionModal: React.FC<LogManualSessionModalProps> = ({
         durationMinutes,
         sessionType: 'manual',
         focusRating,
-        notes: notes.trim() || 'Manual offline study session',
+        notes: notes.trim() || 'Phiên học ngoại tuyến thủ công',
       };
 
       await onSave(newSession);
@@ -60,17 +60,17 @@ export const LogManualSessionModal: React.FC<LogManualSessionModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Log Offline Study Session"
-      description="Record study hours completed outside the app (e.g. library, lecture revisions)"
+      title="Ghi nhận phiên học ngoại tuyến"
+      description="Ghi nhận thời gian học ngoài ứng dụng (ví dụ: học tại thư viện, ôn tập trên lớp)"
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
         <Select
-          label="Course"
+          label="Môn học"
           value={courseId}
           onChange={(e) => setCourseId(e.target.value)}
           options={[
-            { value: 'general', label: 'General / Unassigned Focus' },
+            { value: 'general', label: 'Tự học chung / Không gắn môn' },
             ...courses.map((c) => ({ value: c.id, label: `${c.code} · ${c.name}` })),
           ]}
         />
@@ -78,7 +78,7 @@ export const LogManualSessionModal: React.FC<LogManualSessionModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Date *
+              Ngày học *
             </label>
             <input
               type="date"
@@ -91,7 +91,7 @@ export const LogManualSessionModal: React.FC<LogManualSessionModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Start Time *
+              Giờ bắt đầu *
             </label>
             <input
               type="time"
@@ -105,7 +105,7 @@ export const LogManualSessionModal: React.FC<LogManualSessionModalProps> = ({
 
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Duration (Minutes) *
+            Thời lượng (Phút) *
           </label>
           <input
             type="number"
@@ -120,7 +120,7 @@ export const LogManualSessionModal: React.FC<LogManualSessionModalProps> = ({
 
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-            Focus Rating
+            Đánh giá mức độ tập trung
           </label>
           <div className="flex items-center gap-1.5">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -143,19 +143,19 @@ export const LogManualSessionModal: React.FC<LogManualSessionModalProps> = ({
         </div>
 
         <Textarea
-          label="Session Notes"
-          placeholder="e.g. Read chapters 4-6, solved sample problems..."
+          label="Ghi chú phiên học"
+          placeholder="Ví dụ: Đọc chương 4-6, giải bài tập mẫu..."
           rows={3}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
 
-        <div className="pt-4 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="sticky bottom-0 -mx-6 -mb-5 px-6 py-3.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 z-10">
           <Button type="button" variant="outline" size="sm" onClick={onClose}>
-            Cancel
+            Hủy
           </Button>
           <Button type="submit" size="sm" isLoading={isSubmitting}>
-            Log Session
+            Lưu phiên học
           </Button>
         </div>
       </form>

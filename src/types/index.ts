@@ -79,11 +79,14 @@ export interface Course {
   letterGrade?: string; // Letter grade representation (e.g. "A", "B+")
   status: 'enrolled' | 'completed' | 'dropped';
   notes?: string;
+  studyWeeks?: string; // e.g. "2-19" or "2-9, 11-18"
   totalLessons?: number;
   completedLessons?: number;
   lessons?: CourseLesson[];
   attendanceRecords?: AttendanceRecord[];
 }
+
+export type RecurrenceType = 'weekly' | 'biweekly_odd' | 'biweekly_even' | 'course_weeks' | 'custom';
 
 /**
  * Weekly Recurring Timetable Slot (Class Schedule)
@@ -98,7 +101,8 @@ export interface TimetableSlot {
   room?: string;
   instructor?: string;
   type: 'lecture' | 'lab' | 'seminar' | 'tutorial';
-  recurrence: 'weekly' | 'biweekly_odd' | 'biweekly_even';
+  recurrence: RecurrenceType;
+  customWeeks?: string; // e.g. "2-19" or "2-9, 11-18"
 }
 
 export interface TimetableConflict {
@@ -221,6 +225,8 @@ export interface UniHubBackupData {
     studySessions: StudySession[];
     notes: Note[];
     settings: UserSettings;
+    gradingScales?: GradingScale[];
+    activeScaleId?: string;
   };
 }
 

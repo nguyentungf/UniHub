@@ -115,20 +115,20 @@ export const AssignmentsPage: React.FC = () => {
   }[] = [
     {
       status: 'todo',
-      label: 'Not Started',
-      description: 'Backlog & queued homework',
+      label: 'Chưa bắt đầu',
+      description: 'Bài tập đang chờ thực hiện',
       color: 'border-slate-300 dark:border-slate-700',
     },
     {
       status: 'in_progress',
-      label: 'In Progress',
-      description: 'Actively being researched or coded',
+      label: 'Đang làm',
+      description: 'Đang nghiên cứu hoặc làm bài',
       color: 'border-brand-500',
     },
     {
       status: 'completed',
-      label: 'Completed',
-      description: 'Finished, submitted, or graded',
+      label: 'Đã hoàn thành',
+      description: 'Đã nộp bài hoặc có điểm',
       color: 'border-emerald-500',
     },
   ];
@@ -160,11 +160,11 @@ export const AssignmentsPage: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
-        title="Assignments & Deadlines"
-        subtitle="Manage upcoming coursework, milestones, and grading weights with smart calendar sync"
+        title="Bài tập & Hạn nộp"
+        subtitle="Quản lý bài tập, tiến độ và tỷ trọng điểm số với tính năng đồng bộ lịch thông minh"
         badge={
           <Badge variant="brand">
-            {progressStats.total - progressStats.completed} Pending Tasks
+            {progressStats.total - progressStats.completed} bài tập chưa xong
           </Badge>
         }
         actions={
@@ -189,7 +189,7 @@ export const AssignmentsPage: React.FC = () => {
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
                 }`}
               >
-                Table
+                Danh sách
               </button>
               <button
                 onClick={() => setViewMode('calendar')}
@@ -199,7 +199,7 @@ export const AssignmentsPage: React.FC = () => {
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
                 }`}
               >
-                Calendar
+                Lịch
               </button>
             </div>
 
@@ -208,17 +208,18 @@ export const AssignmentsPage: React.FC = () => {
               variant="outline"
               leftIcon={<Download className="h-4 w-4" />}
               onClick={handleExportAllIcs}
-              title="Download iCalendar file for Google Calendar"
+              title="Tải tệp iCalendar cho Google Calendar"
             >
-              Export
+              Xuất .ICS
             </Button>
 
             <Button
               size="sm"
               leftIcon={<Plus className="h-4 w-4" />}
               onClick={handleOpenAdd}
+              data-testid="add-assignment-button"
             >
-              Add Assignment
+              Thêm bài tập
             </Button>
           </div>
         }
@@ -235,7 +236,7 @@ export const AssignmentsPage: React.FC = () => {
             onClick={clearError}
             className="text-xs font-semibold hover:underline"
           >
-            Dismiss
+            Đóng
           </button>
         </div>
       )}
@@ -251,7 +252,7 @@ export const AssignmentsPage: React.FC = () => {
             <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
-              placeholder="Search title or course..."
+              placeholder="Tìm theo tiêu đề hoặc môn học..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
@@ -264,7 +265,7 @@ export const AssignmentsPage: React.FC = () => {
             onChange={(e) => setFilterCourseId(e.target.value)}
             className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
-            <option value="all">All Courses</option>
+            <option value="all">Tất cả môn học</option>
             {courses.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.code} · {c.name}
@@ -278,11 +279,11 @@ export const AssignmentsPage: React.FC = () => {
             onChange={(e) => setFilterPriority(e.target.value as PriorityLevel | 'all')}
             className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
-            <option value="all">All Priorities</option>
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
+            <option value="all">Tất cả mức ưu tiên</option>
+            <option value="urgent">Khẩn cấp</option>
+            <option value="high">Ưu tiên cao</option>
+            <option value="medium">Trung bình</option>
+            <option value="low">Ưu tiên thấp</option>
           </select>
 
           {/* Filter Status */}
@@ -291,10 +292,10 @@ export const AssignmentsPage: React.FC = () => {
             onChange={(e) => setFilterStatus(e.target.value as AssignmentStatus | 'all')}
             className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
-            <option value="all">All Statuses</option>
-            <option value="todo">Not Started</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
+            <option value="all">Tất cả trạng thái</option>
+            <option value="todo">Chưa bắt đầu</option>
+            <option value="in_progress">Đang làm</option>
+            <option value="completed">Đã hoàn thành</option>
           </select>
 
           {/* Sort By */}
@@ -305,18 +306,18 @@ export const AssignmentsPage: React.FC = () => {
               onChange={(e) => setSortBy(e.target.value as AssignmentSortOption)}
               className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             >
-              <option value="dueDate_asc">Due Date (Earliest First)</option>
-              <option value="dueDate_desc">Due Date (Latest First)</option>
-              <option value="priority_desc">Priority (Urgent First)</option>
-              <option value="priority_asc">Priority (Low First)</option>
-              <option value="title_asc">Title (A to Z)</option>
-              <option value="title_desc">Title (Z to A)</option>
+              <option value="dueDate_asc">Hạn nộp (Gần nhất trước)</option>
+              <option value="dueDate_desc">Hạn nộp (Xa nhất trước)</option>
+              <option value="priority_desc">Độ ưu tiên (Khẩn cấp trước)</option>
+              <option value="priority_asc">Độ ưu tiên (Thấp trước)</option>
+              <option value="title_asc">Tiêu đề (A - Z)</option>
+              <option value="title_desc">Tiêu đề (Z - A)</option>
             </select>
           </div>
         </div>
 
         <span className="text-xs text-slate-400 font-medium self-end lg:self-center">
-          Showing {filteredAssignments.length} of {assignments.length} assignments
+          Hiển thị {filteredAssignments.length} / {assignments.length} bài tập
         </span>
       </div>
 
@@ -324,9 +325,9 @@ export const AssignmentsPage: React.FC = () => {
       {filteredAssignments.length === 0 ? (
         <EmptyState
           icon={CheckSquare}
-          title="No assignments found"
-          description="Try adjusting your filters or search keywords, or create a new assignment."
-          actionLabel="Add Assignment"
+          title="Không tìm thấy bài tập nào"
+          description="Hãy thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm, hoặc thêm một bài tập mới."
+          actionLabel="Thêm bài tập"
           onAction={handleOpenAdd}
         />
       ) : viewMode === 'kanban' ? (
@@ -367,7 +368,7 @@ export const AssignmentsPage: React.FC = () => {
                 <div className="mt-3 space-y-3 flex-1">
                   {columnItems.length === 0 ? (
                     <div className="p-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
-                      No tasks in this lane
+                      Không có bài tập nào trong cột này
                     </div>
                   ) : (
                     columnItems.map((item) => (
@@ -392,13 +393,13 @@ export const AssignmentsPage: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 border-b border-slate-200 dark:bg-slate-800/60 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-semibold">
               <tr>
-                <th className="p-3.5 pl-5">Course</th>
-                <th className="p-3.5">Assignment Title</th>
-                <th className="p-3.5">Due Date</th>
-                <th className="p-3.5">Priority</th>
-                <th className="p-3.5">Weight</th>
-                <th className="p-3.5">Status</th>
-                <th className="p-3.5 text-right pr-5">Actions</th>
+                <th className="p-3.5 pl-5">Môn học</th>
+                <th className="p-3.5">Tiêu đề bài tập</th>
+                <th className="p-3.5">Hạn nộp</th>
+                <th className="p-3.5">Ưu tiên</th>
+                <th className="p-3.5">Trọng số</th>
+                <th className="p-3.5">Trạng thái</th>
+                <th className="p-3.5 text-right pr-5">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
@@ -462,7 +463,13 @@ export const AssignmentsPage: React.FC = () => {
                         }
                         size="sm"
                       >
-                        {a.priority.toUpperCase()}
+                        {a.priority === 'urgent'
+                          ? 'KHẨN CẤP'
+                          : a.priority === 'high'
+                          ? 'CAO'
+                          : a.priority === 'medium'
+                          ? 'TRUNG BÌNH'
+                          : 'THẤP'}
                       </Badge>
                     </td>
                     <td className="p-3.5 font-mono font-semibold">
@@ -480,10 +487,10 @@ export const AssignmentsPage: React.FC = () => {
                         size="sm"
                       >
                         {completed
-                          ? 'COMPLETED'
+                          ? 'ĐÃ XONG'
                           : a.status === 'in_progress'
-                          ? 'IN PROGRESS'
-                          : 'NOT STARTED'}
+                          ? 'ĐANG LÀM'
+                          : 'CHƯA LÀM'}
                       </Badge>
                     </td>
                     <td className="p-3.5 text-right pr-5">
@@ -496,13 +503,13 @@ export const AssignmentsPage: React.FC = () => {
                             updateAssignmentStatus(a.id, next);
                           }}
                         >
-                          {a.status === 'todo' ? 'Start' : a.status === 'in_progress' ? 'Done' : 'Reopen'}
+                          {a.status === 'todo' ? 'Bắt đầu' : a.status === 'in_progress' ? 'Xong' : 'Mở lại'}
                         </Button>
                         <Button
                           size="xs"
                           variant="ghost"
                           onClick={() => handleOpenEdit(a)}
-                          title="Edit"
+                          title="Sửa"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </Button>
@@ -511,7 +518,7 @@ export const AssignmentsPage: React.FC = () => {
                           variant="ghost"
                           className="hover:text-rose-600"
                           onClick={() => setDeleteTarget({ id: a.id, title: a.title })}
-                          title="Delete"
+                          title="Xóa"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -552,9 +559,9 @@ export const AssignmentsPage: React.FC = () => {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleConfirmDelete}
-        title="Delete Assignment"
-        description={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone and will remove associated grading records.`}
-        confirmText="Delete Assignment"
+        title="Xóa bài tập"
+        description={`Bạn có chắc chắn muốn xóa bài tập "${deleteTarget?.title}"? Hành động này không thể hoàn tác.`}
+        confirmText="Xóa bài tập"
         variant="danger"
       />
     </div>

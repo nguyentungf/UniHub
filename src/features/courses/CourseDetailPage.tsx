@@ -85,38 +85,38 @@ export const CourseDetailPage: React.FC = () => {
   const tabs = [
     {
       id: 'lessons',
-      label: 'Lessons & Progress',
+      label: 'Bài học & Tiến độ',
       count: lessonProgress.completed,
       icon: <BookOpen className="h-4 w-4" />,
     },
     {
       id: 'attendance',
-      label: 'Attendance Tracking',
+      label: 'Điểm danh chuyên cần',
       count: attendance.totalSessions,
       icon: <CalendarCheck className="h-4 w-4" />,
     },
     {
       id: 'grading',
-      label: 'Syllabus & Grading',
+      label: 'Đề cương & Trọng số điểm',
       count: course.gradingComponents?.length || 0,
       icon: <Sparkles className="h-4 w-4" />,
     },
     {
       id: 'schedule',
-      label: 'Class Schedule',
+      label: 'Lịch học theo tuần',
       count: courseSlots.length,
       icon: <Calendar className="h-4 w-4" />,
     },
   ];
 
   const daysMap: Record<number, string> = {
-    1: 'Monday',
-    2: 'Tuesday',
-    3: 'Wednesday',
-    4: 'Thursday',
-    5: 'Friday',
-    6: 'Saturday',
-    7: 'Sunday',
+    1: 'Thứ Hai',
+    2: 'Thứ Ba',
+    3: 'Thứ Tư',
+    4: 'Thứ Năm',
+    5: 'Thứ Sáu',
+    6: 'Thứ Bảy',
+    7: 'Chủ Nhật',
   };
 
   return (
@@ -128,7 +128,7 @@ export const CourseDetailPage: React.FC = () => {
           className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors group"
         >
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
-          <span>Back to Course Catalog</span>
+          <span>Quay lại Danh mục môn học</span>
         </NavLink>
 
         <div className="flex items-center gap-2">
@@ -138,7 +138,7 @@ export const CourseDetailPage: React.FC = () => {
             leftIcon={<Edit2 className="h-3.5 w-3.5" />}
             onClick={() => setIsEditModalOpen(true)}
           >
-            Edit Course
+            Sửa môn học
           </Button>
           <Button
             size="xs"
@@ -146,7 +146,7 @@ export const CourseDetailPage: React.FC = () => {
             leftIcon={<Trash2 className="h-3.5 w-3.5" />}
             onClick={() => setIsDeleteModalOpen(true)}
           >
-            Delete
+            Xóa môn
           </Button>
         </div>
       </div>
@@ -165,14 +165,19 @@ export const CourseDetailPage: React.FC = () => {
                 {course.code}
               </span>
               <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur-md">
-                {course.credits} Academic Credits
+                {course.credits === 0 ? '0 Tín chỉ (Không tính GPA)' : `${course.credits} Tín chỉ`}
               </span>
               <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-md">
-                {semester?.name || 'Fall 2026'}
+                {semester?.name || 'Học kỳ 1'}
               </span>
+              {course.studyWeeks && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur-md">
+                  Tuần {course.studyWeeks}
+                </span>
+              )}
               <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/30 text-emerald-100 flex items-center gap-1">
                 <CheckCircle className="h-3.5 w-3.5" />
-                {course.status.toUpperCase()}
+                {course.status === 'enrolled' ? 'ĐANG THEO HỌC' : course.status === 'completed' ? 'ĐÃ HOÀN THÀNH' : 'ĐÃ HỦY MÔN'}
               </span>
             </div>
 
@@ -181,11 +186,11 @@ export const CourseDetailPage: React.FC = () => {
             <div className="flex flex-wrap items-center gap-4 text-xs opacity-90 pt-1">
               <div className="flex items-center gap-1.5">
                 <User className="h-4 w-4 shrink-0" />
-                <span>Instructor: {course.instructor || 'TBD'}</span>
+                <span>Giảng viên: {course.instructor || 'Chưa cập nhật'}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <MapPin className="h-4 w-4 shrink-0" />
-                <span>Location: {course.location || 'Online'}</span>
+                <span>Địa điểm: {course.location || 'Học trực tuyến'}</span>
               </div>
               {course.syllabusUrl && (
                 <a
@@ -194,7 +199,7 @@ export const CourseDetailPage: React.FC = () => {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 underline underline-offset-4 hover:opacity-100 font-semibold"
                 >
-                  <ExternalLink className="h-3.5 w-3.5" /> Syllabus Document
+                  <ExternalLink className="h-3.5 w-3.5" /> Tài liệu đề cương
                 </a>
               )}
             </div>
@@ -204,10 +209,10 @@ export const CourseDetailPage: React.FC = () => {
           {course.targetGrade && (
             <div className="text-left md:text-right shrink-0 bg-white/10 backdrop-blur-md p-4 rounded-2xl min-w-[110px]">
               <span className="text-[10px] uppercase font-bold tracking-wider opacity-80 block">
-                Target Grade
+                Mục tiêu
               </span>
               <span className="text-3xl font-black">{course.targetGrade}</span>
-              <span className="text-[10px] block opacity-75 mt-0.5">Scale 4.0</span>
+              <span className="text-[10px] block opacity-75 mt-0.5">Thang 4.0</span>
             </div>
           )}
         </div>
@@ -220,7 +225,7 @@ export const CourseDetailPage: React.FC = () => {
           <div>
             <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold">
               <span className="flex items-center gap-1.5">
-                <BookOpen className="h-4 w-4 text-brand-500" /> Lesson Completion
+                <BookOpen className="h-4 w-4 text-brand-500" /> Tiến độ bài học
               </span>
               <span className="font-mono text-slate-900 dark:text-white font-bold">
                 {lessonProgress.percentage}%
@@ -248,7 +253,7 @@ export const CourseDetailPage: React.FC = () => {
           <div>
             <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold">
               <span className="flex items-center gap-1.5">
-                <CalendarCheck className="h-4 w-4 text-emerald-500" /> Attendance Rate
+                <CalendarCheck className="h-4 w-4 text-emerald-500" /> Tỷ lệ chuyên cần
               </span>
               <Badge
                 variant={attendance.isAtRisk ? 'rose' : attendance.attendanceRate >= 90 ? 'emerald' : 'amber'}
@@ -262,7 +267,7 @@ export const CourseDetailPage: React.FC = () => {
             </p>
           </div>
           <p className="text-[11px] text-slate-400 mt-2">
-            {attendance.present} Present · {attendance.late} Late · {attendance.absent} Absent
+            {attendance.present} Có mặt · {attendance.late} Đi muộn · {attendance.absent} Vắng mặt
           </p>
         </Card>
 
@@ -271,18 +276,18 @@ export const CourseDetailPage: React.FC = () => {
           <div>
             <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold">
               <span className="flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-purple-500" /> Weekly Class Slots
+                <Clock className="h-4 w-4 text-purple-500" /> Số buổi học / tuần
               </span>
               <NavLink to="/timetable" className="text-[11px] text-brand-600 hover:underline">
-                View Timetable →
+                Xem TKB →
               </NavLink>
             </div>
             <p className="text-2xl font-black text-slate-900 dark:text-white mt-2">
-              {courseSlots.length} Sessions / week
+              {courseSlots.length} Buổi / tuần
             </p>
           </div>
           <p className="text-[11px] text-slate-400 mt-2 truncate">
-            {courseSlots.map((s) => `${daysMap[s.dayOfWeek]} ${s.startTime}`).join(', ') || 'No slots scheduled'}
+            {courseSlots.map((s) => `${daysMap[s.dayOfWeek]} ${s.startTime}`).join(', ') || 'Chưa xếp lịch'}
           </p>
         </Card>
       </div>

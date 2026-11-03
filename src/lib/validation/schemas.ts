@@ -30,6 +30,22 @@ export const SemesterSchema = z.object({
   path: ['endDate'],
 });
 
+export const SemesterFormSchema = z.object({
+  name: z.string().trim().min(1, 'Tên học kỳ không được để trống'),
+  startDate: DateStringSchema,
+  endDate: DateStringSchema,
+  isCurrent: z.boolean().default(false),
+  targetGpa: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number().min(0, 'Mục tiêu GPA không thể nhỏ hơn 0').max(4.0, 'Mục tiêu GPA tối đa là 4.0').optional()
+  ),
+}).refine(data => data.endDate >= data.startDate, {
+  message: 'Ngày kết thúc phải diễn ra sau hoặc cùng ngày bắt đầu',
+  path: ['endDate'],
+});
+
+export type SemesterFormData = z.infer<typeof SemesterFormSchema>;
+
 export const CourseGradingComponentSchema = z.object({
   id: IdSchema,
   name: z.string().min(1, 'Component name is required'),
@@ -58,7 +74,7 @@ export const CourseSchema = z.object({
   semesterId: IdSchema,
   code: z.string().min(1, 'Course code is required').max(20),
   name: z.string().min(1, 'Course name is required'),
-  credits: z.number().min(1, 'Credits must be at least 1').max(30),
+  credits: z.number().min(0, 'Credits cannot be negative').max(30),
   color: z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Must be a valid hex color code'),
   instructor: z.string().optional(),
   location: z.string().optional(),
@@ -70,6 +86,7 @@ export const CourseSchema = z.object({
   letterGrade: z.string().optional(),
   status: z.enum(['enrolled', 'completed', 'dropped']).default('enrolled'),
   notes: z.string().optional(),
+  studyWeeks: z.string().optional(),
   totalLessons: z.number().min(0).default(15),
   completedLessons: z.number().min(0).default(0),
   lessons: z.array(CourseLessonSchema).default([]),
@@ -79,7 +96,7 @@ export const CourseSchema = z.object({
 export const CourseFormSchema = z.object({
   code: z.string().min(1, 'Course code is required').max(20, 'Course code is too long'),
   name: z.string().min(1, 'Course name is required'),
-  credits: z.number().min(1, 'Credits must be at least 1').max(30, 'Credits maximum is 30'),
+  credits: z.number().min(0, 'Credits cannot be negative').max(30, 'Credits maximum is 30'),
   semesterId: z.string().min(1, 'Please select a semester'),
   color: z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Must be a valid hex color code'),
   instructor: z.string().optional(),
@@ -87,6 +104,7 @@ export const CourseFormSchema = z.object({
   syllabusUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   targetGrade: z.string().optional(),
   status: z.enum(['enrolled', 'completed', 'dropped']).default('enrolled'),
+  studyWeeks: z.string().optional(),
   totalLessons: z.number().min(0, 'Lessons cannot be negative').default(15),
   notes: z.string().optional(),
 });
@@ -104,7 +122,8 @@ export const TimetableSlotSchema = z.object({
   room: z.string().optional(),
   instructor: z.string().optional(),
   type: z.enum(['lecture', 'lab', 'seminar', 'tutorial']).default('lecture'),
-  recurrence: z.enum(['weekly', 'biweekly_odd', 'biweekly_even']).default('weekly'),
+  recurrence: z.enum(['weekly', 'biweekly_odd', 'biweekly_even', 'course_weeks', 'custom']).default('weekly'),
+  customWeeks: z.string().optional(),
 }).refine(data => data.endTime > data.startTime, {
   message: 'End time must be after start time',
   path: ['endTime'],
@@ -122,7 +141,8 @@ export const TimetableSlotFormSchema = z.object({
   room: z.string().optional(),
   instructor: z.string().optional(),
   type: z.enum(['lecture', 'lab', 'seminar', 'tutorial']).default('lecture'),
-  recurrence: z.enum(['weekly', 'biweekly_odd', 'biweekly_even']).default('weekly'),
+  recurrence: z.enum(['weekly', 'biweekly_odd', 'biweekly_even', 'course_weeks', 'custom']).default('weekly'),
+  customWeeks: z.string().optional(),
 }).refine(data => data.endTime > data.startTime, {
   message: 'End time must be after start time',
   path: ['endTime'],
@@ -275,7 +295,7 @@ export const GradeRecordFormSchema = z.object({
   courseCode: z.string().trim().min(1, 'Course code is required').max(20, 'Code is too long'),
   courseName: z.string().trim().min(1, 'Course name is required').max(100, 'Name is too long'),
   semesterId: z.string().min(1, 'Please select a semester'),
-  credits: z.number().min(0.5, 'Credits must be at least 0.5').max(30, 'Credits cannot exceed 30'),
+  credits: z.number().min(0, 'Credits cannot be negative').max(30, 'Credits cannot exceed 30'),
   percentageScore: z.number().min(0, 'Percentage cannot be negative').max(100, 'Percentage cannot exceed 100').optional(),
   letterGrade: z.string().trim().optional(),
   gradePoint: z.number().min(0, 'Grade point cannot be negative').max(10, 'Grade point cannot exceed 10').optional(),
@@ -321,5 +341,7 @@ export const UniHubBackupDataSchema = z.object({
     studySessions: z.array(StudySessionSchema).default([]),
     notes: z.array(NoteSchema).default([]),
     settings: UserSettingsSchema,
+    gradingScales: z.array(GradingScaleSchema).optional(),
+    activeScaleId: z.string().optional(),
   }),
 });

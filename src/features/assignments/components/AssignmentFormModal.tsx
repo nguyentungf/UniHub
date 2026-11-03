@@ -152,11 +152,11 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'Edit Assignment' : 'Add New Assignment'}
+      title={isEditing ? 'Chỉnh sửa bài tập' : 'Thêm bài tập mới'}
       description={
         isEditing
-          ? 'Update deadline, course, status, or scoring weight'
-          : 'Schedule a homework deadline, lab submission, or project milestone'
+          ? 'Cập nhật hạn nộp, môn học, trạng thái hoặc trọng số điểm'
+          : 'Lên lịch bài tập về nhà, báo cáo thực hành hoặc đồ án môn học'
       }
       size="lg"
     >
@@ -169,7 +169,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Select
-            label="Course *"
+            label="Môn học *"
             value={courseId}
             onChange={(e) => setCourseId(e.target.value)}
             options={courses.map((c) => ({
@@ -181,22 +181,22 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
           />
 
           <Select
-            label="Priority *"
+            label="Độ ưu tiên *"
             value={priority}
             onChange={(e) => setPriority(e.target.value as PriorityLevel)}
             options={[
-              { value: 'urgent', label: 'Urgent Priority' },
-              { value: 'high', label: 'High Priority' },
-              { value: 'medium', label: 'Medium Priority' },
-              { value: 'low', label: 'Low Priority' },
+              { value: 'urgent', label: 'Khẩn cấp' },
+              { value: 'high', label: 'Ưu tiên cao' },
+              { value: 'medium', label: 'Ưu tiên trung bình' },
+              { value: 'low', label: 'Ưu tiên thấp' },
             ]}
             error={errors.priority}
           />
         </div>
 
         <Input
-          label="Assignment Title *"
-          placeholder="e.g. Red-Black Tree Implementation"
+          label="Tiêu đề bài tập *"
+          placeholder="VD: Cài đặt cây Đỏ-Đen & Đồ thị"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           error={errors.title}
@@ -205,7 +205,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input
-            label="Due Date & Time *"
+            label="Hạn nộp & Thời gian *"
             type="datetime-local"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
@@ -214,15 +214,15 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
           />
 
           <Select
-            label="Current Status *"
+            label="Trạng thái hiện tại *"
             value={status}
             onChange={(e) => setStatus(e.target.value as AssignmentStatus)}
             options={[
-              { value: 'todo', label: 'Not Started' },
-              { value: 'in_progress', label: 'In Progress' },
-              { value: 'completed', label: 'Completed' },
-              { value: 'submitted', label: 'Submitted' },
-              { value: 'graded', label: 'Graded' },
+              { value: 'todo', label: 'Chưa bắt đầu' },
+              { value: 'in_progress', label: 'Đang làm' },
+              { value: 'completed', label: 'Đã hoàn thành' },
+              { value: 'submitted', label: 'Đã nộp bài' },
+              { value: 'graded', label: 'Đã chấm điểm' },
             ]}
             error={errors.status}
           />
@@ -230,7 +230,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Input
-            label="Grade Weight (%)"
+            label="Trọng số điểm (%)"
             type="number"
             min="0"
             max="100"
@@ -242,7 +242,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
           />
 
           <Input
-            label="Max Points"
+            label="Điểm tối đa"
             type="number"
             min="1"
             placeholder="100"
@@ -252,11 +252,11 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
           />
 
           <Input
-            label="Earned Points (Optional)"
+            label="Điểm đạt được (Tùy chọn)"
             type="number"
             min="0"
             step="0.5"
-            placeholder="e.g. 95"
+            placeholder="VD: 95"
             value={earnedScore}
             onChange={(e) => setEarnedScore(e.target.value)}
             error={errors.earnedScore}
@@ -264,15 +264,15 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
         </div>
 
         <Textarea
-          label="Description & Instructions"
-          placeholder="Optional submission details, rubric, requirements, or link to problem specification..."
+          label="Mô tả & Hướng dẫn"
+          placeholder="Yêu cầu chi tiết, tiêu chí chấm, hoặc đường dẫn tài liệu bài tập..."
           rows={3}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           error={errors.description}
         />
 
-        <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <div className="sticky bottom-0 -mx-6 -mb-5 px-6 py-3.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5 z-10">
           <Button
             type="button"
             variant="outline"
@@ -280,10 +280,10 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
             onClick={onClose}
             disabled={isSubmitting}
           >
-            Cancel
+            Hủy
           </Button>
           <Button type="submit" size="sm" isLoading={isSubmitting}>
-            {isEditing ? 'Update Assignment' : 'Create Assignment'}
+            {isEditing ? 'Cập nhật bài tập' : 'Tạo bài tập'}
           </Button>
         </div>
       </form>

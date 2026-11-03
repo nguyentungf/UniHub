@@ -51,12 +51,40 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const getStatusActionText = (): string => {
     switch (assignment.status) {
       case 'todo':
-        return 'Start Task →';
+        return 'Bắt đầu →';
       case 'in_progress':
-        return 'Complete Task ✓';
+        return 'Hoàn thành ✓';
       default:
-        return 'Reopen';
+        return 'Mở lại';
     }
+  };
+
+  const getPriorityLabelVi = (p: string): string => {
+    switch (p) {
+      case 'urgent':
+        return 'Khẩn cấp';
+      case 'high':
+        return 'Cao';
+      case 'medium':
+        return 'Trung bình';
+      case 'low':
+        return 'Thấp';
+      default:
+        return p;
+    }
+  };
+
+  const formatDeadlineLabelVi = (label: string): string => {
+    if (label === 'Completed') return 'Đã xong';
+    if (label.startsWith('Overdue by ')) {
+      return label.replace('Overdue by ', 'Quá hạn ').replace('days', 'ngày').replace('day', 'ngày').replace('hours', 'giờ').replace('hour', 'giờ');
+    }
+    if (label.startsWith('Due in ')) {
+      return label.replace('Due in ', 'Còn ').replace('days', 'ngày').replace('day', 'ngày').replace('hours', 'giờ').replace('hour', 'giờ');
+    }
+    if (label === 'Due today') return 'Hạn hôm nay';
+    if (label === 'Due tomorrow') return 'Hạn ngày mai';
+    return label;
   };
 
   return (
@@ -89,23 +117,23 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
                 : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
             }`}
           >
-            {assignment.priority}
+            {getPriorityLabelVi(assignment.priority)}
           </span>
         </div>
 
         <div className="flex items-center gap-1">
           <button
             onClick={() => onEdit(assignment)}
-            title="Edit Assignment"
-            aria-label={`Edit ${assignment.title}`}
+            title="Sửa bài tập"
+            aria-label={`Sửa ${assignment.title}`}
             className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors"
           >
             <Edit2 className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => onDelete(assignment.id, assignment.title)}
-            title="Delete Assignment"
-            aria-label={`Delete ${assignment.title}`}
+            title="Xóa bài tập"
+            aria-label={`Xóa ${assignment.title}`}
             className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 transition-colors"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -145,7 +173,7 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
           ) : (
             <Calendar className="h-3 w-3 shrink-0" />
           )}
-          <span>{deadlineInfo.label}</span>
+          <span>{formatDeadlineLabelVi(deadlineInfo.label)}</span>
         </div>
 
         <div className="flex items-center gap-2 font-mono">
@@ -156,7 +184,7 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
           )}
           {assignment.earnedScore !== undefined && (
             <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-              {assignment.earnedScore}/{assignment.maxScore} pts
+              {assignment.earnedScore}/{assignment.maxScore} đ
             </span>
           )}
         </div>
@@ -167,7 +195,7 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
         {completed ? (
           <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
             <CheckCircle2 className="h-3.5 w-3.5" />
-            Completed
+            Đã xong
           </span>
         ) : (
           <button

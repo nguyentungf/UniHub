@@ -31,6 +31,7 @@ export function useGpaAnalytics() {
   const addCourse = useCourseStore((s) => s.addCourse);
   const updateCourse = useCourseStore((s) => s.updateCourse);
   const deleteCourse = useCourseStore((s) => s.deleteCourse);
+  const updateSemester = useCourseStore((s) => s.updateSemester);
 
   const activeScaleId = useGpaStore((s) => s.activeScaleId);
   const scales = useGpaStore((s) => s.scales);
@@ -88,10 +89,15 @@ export function useGpaAnalytics() {
   // Active Semester GPA summary
   const activeSemesterSummary = useMemo(() => {
     const semId = selectedSemesterId === 'all' ? currentSemester?.id : selectedSemesterId;
-    const semName = semesterMap.get(semId || '') || 'Current Term';
+    const targetSem = semesters.find((s) => s.id === semId) || currentSemester;
+    const semName = targetSem?.name || semesterMap.get(semId || '') || 'Current Term';
     const recs = allGradeRecords.filter((r) => r.semesterId === semId);
-    return calculateSemesterGpa(recs, activeScale, semId, semName);
-  }, [allGradeRecords, selectedSemesterId, currentSemester, semesterMap, activeScale]);
+    const summary = calculateSemesterGpa(recs, activeScale, semId, semName);
+    return {
+      ...summary,
+      targetGpa: targetSem?.targetGpa,
+    };
+  }, [allGradeRecords, selectedSemesterId, currentSemester, semesterMap, activeScale, semesters]);
 
   // Cumulative GPA Summary across all semesters
   const cumulativeSummary = useMemo(() => {
@@ -152,6 +158,7 @@ export function useGpaAnalytics() {
     addCourse,
     updateCourse,
     deleteCourse,
+    updateSemester,
   };
 }
 

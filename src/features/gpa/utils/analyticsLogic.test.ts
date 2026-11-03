@@ -135,6 +135,26 @@ describe('Academic Analytics Logic Tests', () => {
       assert.equal(stats.studyTimeByCourse[1].courseCode, 'MATH101');
       assert.equal(stats.studyTimeByCourse[1].hours, 1.0);
     });
+
+    it('unifies dateStr and dayLabel in the exact same local timezone without mismatch', () => {
+      const refDate = new Date('2026-11-09T03:00:00'); // Early morning date
+      const stats = calculateStudyTimeAnalytics([], mockCourses, refDate);
+
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+      assert.equal(stats.dailyTrend.length, 7);
+      for (const item of stats.dailyTrend) {
+        const [y, m, d] = item.date.split('-').map(Number);
+        const localDate = new Date(y, m - 1, d);
+        const expectedDayLabel = dayNames[localDate.getDay()];
+
+        assert.equal(
+          item.dayLabel,
+          expectedDayLabel,
+          `dayLabel (${item.dayLabel}) must match date (${item.date}) in local timezone`
+        );
+      }
+    });
   });
 
   describe('calculateAssignmentAnalytics', () => {
@@ -183,7 +203,7 @@ describe('Academic Analytics Logic Tests', () => {
   });
 
   describe('calculateAcademicPeriodSummaries', () => {
-    it('generates period summaries for weekly and monthly windows', () => {
+    it('returns zero momentum score when there is no study activity', () => {
       const summaries = calculateAcademicPeriodSummaries(
         [],
         [],
@@ -195,7 +215,63 @@ describe('Academic Analytics Logic Tests', () => {
       assert.ok(summaries.monthly);
       assert.equal(summaries.weekly.periodLabel, 'This Week');
       assert.equal(summaries.monthly.periodLabel, 'This Month');
-      assert.ok(summaries.weekly.momentumScore > 0);
+      assert.equal(summaries.weekly.momentumScore, 0, 'Weekly momentum score must be 0 when no activity exists');
+      assert.equal(summaries.monthly.momentumScore, 0, 'Monthly momentum score must be 0 when no activity exists');
+      assert.equal(summaries.weekly.summaryHighlight, 'Chưa có hoạt động học tập nào trong tuần này');
+      assert.equal(summaries.monthly.summaryHighlight, 'Chưa có hoạt động học tập nào trong 30 ngày qua');
+    });
+
+    it('strictly excludes future study sessions occurring after referenceDate from weekly and monthly metrics', () => {
+      const refDate = new Date('2026-11-10T12:00:00Z');
+
+      const testSessions: StudySession[] = [
+        {
+          id: 's-valid-week',
+          courseId: 'c1',
+          startTime: '2026-11-07T10:00:00Z', // 3 days ago (within 7 days)
+          endTime: '2026-11-07T12:00:00Z',
+          durationMinutes: 120, // 2.0 hours
+          sessionType: 'pomodoro',
+        },
+        {
+          id: 's-valid-month-only',
+          courseId: 'c1',
+          startTime: '2026-10-25T10:00:00Z', // 16 days ago (outside 7d, within 30d)
+          endTime: '2026-10-25T11:00:00Z',
+          durationMinutes: 60, // 1.0 hour
+          sessionType: 'pomodoro',
+        },
+        {
+          id: 's-past-too-old',
+          courseId: 'c1',
+          startTime: '2026-09-01T10:00:00Z', // 70 days ago (outside 30d)
+          endTime: '2026-09-01T11:00:00Z',
+          durationMinutes: 90,
+          sessionType: 'pomodoro',
+        },
+        {
+          id: 's-future-bogus',
+          courseId: 'c1',
+          startTime: '2026-11-15T10:00:00Z', // 5 days in FUTURE relative to referenceDate!
+          endTime: '2026-11-15T13:00:00Z',
+          durationMinutes: 180, // 3.0 hours - MUST NOT BE COUNTED
+          sessionType: 'pomodoro',
+        },
+      ];
+
+      const summaries = calculateAcademicPeriodSummaries(
+        testSessions,
+        [],
+        [],
+        mockCourses,
+        refDate
+      );
+
+      // Weekly: should only include s-valid-week (120 min = 2.0h), strictly excluding future 180 min
+      assert.equal(summaries.weekly.studyHours, 2.0);
+
+      // Monthly: should only include s-valid-week (120 min) + s-valid-month-only (60 min) = 180 min = 3.0h
+      assert.equal(summaries.monthly.studyHours, 3.0);
     });
   });
 });

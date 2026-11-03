@@ -47,8 +47,13 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                 {course.code}
               </span>
               <Badge variant="outline" size="sm">
-                {course.credits} Credits
+                {course.credits === 0 ? '0 Tín chỉ (Không tính GPA)' : `${course.credits} Tín chỉ`}
               </Badge>
+              {course.studyWeeks && (
+                <Badge variant="brand" size="sm">
+                  Tuần {course.studyWeeks}
+                </Badge>
+              )}
               {semester && (
                 <span className="text-[11px] text-slate-400 font-medium">
                   {semester.name}
@@ -62,7 +67,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             {course.targetGrade && (
               <div className="text-right mr-2">
                 <span className="text-[9px] text-slate-400 uppercase font-bold block">
-                  Target
+                  Mục tiêu
                 </span>
                 <span className="text-base font-extrabold text-brand-600 dark:text-brand-400">
                   {course.targetGrade}
@@ -72,14 +77,14 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             <button
               onClick={() => onEdit(course)}
               className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-              title="Edit course"
+              title="Chỉnh sửa môn học"
             >
               <Edit2 className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => onDelete(course)}
               className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 transition-colors"
-              title="Delete course"
+              title="Xóa môn học"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
@@ -92,11 +97,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300">
           <div className="flex items-center gap-1.5 truncate">
             <User className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-            <span className="truncate">{course.instructor || 'TBD'}</span>
+            <span className="truncate">{course.instructor || 'Chưa cập nhật'}</span>
           </div>
           <div className="flex items-center gap-1.5 truncate">
             <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-            <span className="truncate">{course.location || 'Online'}</span>
+            <span className="truncate">{course.location || 'Trực tuyến'}</span>
           </div>
         </div>
 
@@ -104,7 +109,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
           <div className="flex items-center justify-between text-xs font-semibold">
             <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1">
-              <BookOpen className="h-3 w-3 text-brand-500" /> Lesson Progress
+              <BookOpen className="h-3 w-3 text-brand-500" /> Tiến độ bài học
             </span>
             <span className="font-mono text-slate-900 dark:text-white">
               {lessonProgress.completed} / {lessonProgress.total} ({lessonProgress.percentage}%)
@@ -124,15 +129,15 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         {/* Attendance Summary */}
         <div className="flex items-center justify-between pt-1">
           <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-            Attendance Rate:
+            Tỷ lệ chuyên cần:
           </span>
           {attendance.isAtRisk ? (
             <Badge variant="rose" size="sm" dot>
-              {attendance.attendanceRate}% · At Risk (&lt;80%)
+              {attendance.attendanceRate}% · Nguy cơ cấm thi (&lt;80%)
             </Badge>
           ) : (
             <Badge variant={attendance.attendanceRate >= 90 ? 'emerald' : 'brand'} size="sm">
-              {attendance.attendanceRate}% Attendance
+              {attendance.attendanceRate}% Chuyên cần
             </Badge>
           )}
         </div>
@@ -141,7 +146,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       <CardFooter className="border-t border-slate-100 dark:border-slate-800/80 pt-3 flex items-center justify-between">
         <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
           <CheckCircle className="h-3.5 w-3.5" />
-          {course.status.toUpperCase()}
+          {course.status === 'enrolled' ? 'ĐANG THEO HỌC' : course.status === 'completed' ? 'ĐÃ HOÀN THÀNH' : 'ĐÃ HỦY'}
         </span>
 
         <NavLink to={`/courses/${course.id}`}>
@@ -150,7 +155,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             variant="ghost"
             rightIcon={<ExternalLink className="h-3.5 w-3.5" />}
           >
-            Course Cockpit
+            Chi tiết môn học
           </Button>
         </NavLink>
       </CardFooter>

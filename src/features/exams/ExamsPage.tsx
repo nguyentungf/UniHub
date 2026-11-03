@@ -135,11 +135,11 @@ export const ExamsPage: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
-        title="Exam Hub & Timeline"
-        subtitle="Chronological exam countdowns, exam hall seat assignments, and syllabus checklists"
+        title="Lịch thi & Tiến trình ôn tập"
+        subtitle="Đếm ngược ngày thi, số báo danh phòng thi và danh mục ôn tập theo đề cương"
         badge={
           <Badge variant="amber" dot>
-            {overviewStats.upcomingCount} Upcoming Exams
+            {overviewStats.upcomingCount} kỳ thi sắp diễn ra
           </Badge>
         }
         actions={
@@ -154,7 +154,7 @@ export const ExamsPage: React.FC = () => {
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
                 }`}
               >
-                Timeline
+                Dòng thời gian
               </button>
               <button
                 onClick={() => setViewMode('table')}
@@ -164,7 +164,7 @@ export const ExamsPage: React.FC = () => {
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
                 }`}
               >
-                Table
+                Danh sách
               </button>
               <button
                 onClick={() => setViewMode('calendar')}
@@ -174,7 +174,7 @@ export const ExamsPage: React.FC = () => {
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
                 }`}
               >
-                Calendar
+                Lịch
               </button>
             </div>
 
@@ -183,9 +183,9 @@ export const ExamsPage: React.FC = () => {
               variant="outline"
               leftIcon={<Download className="h-4 w-4" />}
               onClick={handleExportAllIcs}
-              title="Download iCalendar file for Google Calendar"
+              title="Tải tệp iCalendar cho Google Calendar"
             >
-              Export
+              Xuất .ICS
             </Button>
 
             <Button
@@ -193,7 +193,7 @@ export const ExamsPage: React.FC = () => {
               leftIcon={<Plus className="h-4 w-4" />}
               onClick={handleOpenAdd}
             >
-              Schedule Exam
+              Lên lịch thi
             </Button>
           </div>
         }
@@ -210,7 +210,7 @@ export const ExamsPage: React.FC = () => {
             onClick={clearError}
             className="text-xs font-semibold hover:underline"
           >
-            Dismiss
+            Đóng
           </button>
         </div>
       )}
@@ -226,7 +226,7 @@ export const ExamsPage: React.FC = () => {
             <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
-              placeholder="Search exam, hall, or topic..."
+              placeholder="Tìm theo kỳ thi, phòng thi hoặc chủ đề..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
@@ -239,7 +239,7 @@ export const ExamsPage: React.FC = () => {
             onChange={(e) => setFilterCourseId(e.target.value)}
             className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
-            <option value="all">All Courses</option>
+            <option value="all">Tất cả môn học</option>
             {courses.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.code} · {c.name}
@@ -253,11 +253,11 @@ export const ExamsPage: React.FC = () => {
             onChange={(e) => setFilterType(e.target.value as ExamType | 'all')}
             className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
-            <option value="all">All Exam Types</option>
-            <option value="midterm">Midterm Exam</option>
-            <option value="final">Final Exam</option>
-            <option value="quiz">Quiz</option>
-            <option value="practical">Lab Practical</option>
+            <option value="all">Tất cả loại kỳ thi</option>
+            <option value="midterm">Thi giữa kỳ</option>
+            <option value="final">Thi cuối kỳ</option>
+            <option value="quiz">Kiểm tra ngắn / Quiz</option>
+            <option value="practical">Thi thực hành / Lab</option>
           </select>
 
           {/* Filter Status */}
@@ -266,9 +266,9 @@ export const ExamsPage: React.FC = () => {
             onChange={(e) => setFilterStatus(e.target.value as 'all' | 'upcoming' | 'completed')}
             className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
-            <option value="all">All Statuses</option>
-            <option value="upcoming">Upcoming Only</option>
-            <option value="completed">Completed Only</option>
+            <option value="all">Tất cả trạng thái</option>
+            <option value="upcoming">Sắp diễn ra</option>
+            <option value="completed">Đã thi xong</option>
           </select>
 
           {/* Sort By */}
@@ -279,17 +279,17 @@ export const ExamsPage: React.FC = () => {
               onChange={(e) => setSortBy(e.target.value as ExamSortOption)}
               className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             >
-              <option value="examDate_asc">Exam Date (Earliest First)</option>
-              <option value="examDate_desc">Exam Date (Latest First)</option>
-              <option value="weight_desc">Grade Weight (Highest First)</option>
-              <option value="title_asc">Title (A to Z)</option>
-              <option value="title_desc">Title (Z to A)</option>
+              <option value="examDate_asc">Ngày thi (Gần nhất trước)</option>
+              <option value="examDate_desc">Ngày thi (Xa nhất trước)</option>
+              <option value="weight_desc">Trọng số điểm (Cao nhất trước)</option>
+              <option value="title_asc">Tên kỳ thi (A - Z)</option>
+              <option value="title_desc">Tên kỳ thi (Z - A)</option>
             </select>
           </div>
         </div>
 
         <span className="text-xs text-slate-400 font-medium self-end lg:self-center">
-          Showing {filteredExams.length} of {exams.length} exams
+          Hiển thị {filteredExams.length} / {exams.length} kỳ thi
         </span>
       </div>
 
@@ -297,9 +297,9 @@ export const ExamsPage: React.FC = () => {
       {filteredExams.length === 0 ? (
         <EmptyState
           icon={GraduationCap}
-          title="No exams found"
-          description="Try adjusting your filters or schedule a new examination."
-          actionLabel="Schedule Exam"
+          title="Không tìm thấy kỳ thi nào"
+          description="Hãy thử điều chỉnh bộ lọc hoặc lên lịch một kỳ thi mới."
+          actionLabel="Lên lịch thi"
           onAction={handleOpenAdd}
         />
       ) : viewMode === 'timeline' ? (
@@ -323,14 +323,14 @@ export const ExamsPage: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 border-b border-slate-200 dark:bg-slate-800/60 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-semibold">
               <tr>
-                <th className="p-3.5 pl-5">Course</th>
-                <th className="p-3.5">Exam Title & Type</th>
-                <th className="p-3.5">Exam Date & Duration</th>
-                <th className="p-3.5">Hall & Seat</th>
-                <th className="p-3.5">Countdown</th>
-                <th className="p-3.5">Weight</th>
-                <th className="p-3.5">Score</th>
-                <th className="p-3.5 text-right pr-5">Actions</th>
+                <th className="p-3.5 pl-5">Môn học</th>
+                <th className="p-3.5">Tên & Loại kỳ thi</th>
+                <th className="p-3.5">Ngày thi & Thời lượng</th>
+                <th className="p-3.5">Phòng thi & SBD</th>
+                <th className="p-3.5">Đếm ngược</th>
+                <th className="p-3.5">Trọng số</th>
+                <th className="p-3.5">Điểm số</th>
+                <th className="p-3.5 text-right pr-5">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
@@ -338,6 +338,21 @@ export const ExamsPage: React.FC = () => {
                 const course = courseMap.get(exam.courseId);
                 const countdown = getExamCountdown(exam.examDate);
                 const isComp = isExamCompleted(exam);
+
+                const getExamTypeVi = (t: string) => {
+                  switch (t) {
+                    case 'midterm':
+                      return 'GIỮA KỲ';
+                    case 'final':
+                      return 'CUỐI KỲ';
+                    case 'quiz':
+                      return 'QUIZ';
+                    case 'practical':
+                      return 'THỰC HÀNH';
+                    default:
+                      return t.toUpperCase();
+                  }
+                };
 
                 return (
                   <tr
@@ -355,7 +370,7 @@ export const ExamsPage: React.FC = () => {
                     <td className="p-3.5 font-medium text-slate-900 dark:text-white max-w-xs">
                       <div>{exam.title}</div>
                       <Badge variant="outline" size="sm" className="mt-1">
-                        {exam.examType.toUpperCase()}
+                        {getExamTypeVi(exam.examType)}
                       </Badge>
                     </td>
                     <td className="p-3.5 font-mono">
@@ -363,14 +378,14 @@ export const ExamsPage: React.FC = () => {
                         {formatDateTime(exam.examDate)}
                       </div>
                       <span className="text-[10px] text-slate-400">
-                        {exam.durationMinutes} Minutes
+                        {exam.durationMinutes} Phút
                       </span>
                     </td>
                     <td className="p-3.5 text-slate-600 dark:text-slate-300">
                       <div>{exam.location}</div>
                       {exam.seatNumber && (
                         <span className="font-mono font-bold text-[10px] text-brand-600 dark:text-brand-400">
-                          Seat: {exam.seatNumber}
+                          SBD: {exam.seatNumber}
                         </span>
                       )}
                     </td>
@@ -383,7 +398,7 @@ export const ExamsPage: React.FC = () => {
                         }
                         size="sm"
                       >
-                        {isComp ? 'COMPLETED' : countdown.label}
+                        {isComp ? 'ĐÃ XONG' : countdown.label}
                       </Badge>
                     </td>
                     <td className="p-3.5 font-mono font-semibold">
@@ -396,7 +411,7 @@ export const ExamsPage: React.FC = () => {
                         </span>
                       ) : exam.targetScore !== undefined ? (
                         <span className="text-slate-400 text-[11px]">
-                          Target: {exam.targetScore}
+                          Mục tiêu: {exam.targetScore}
                         </span>
                       ) : (
                         '—'
@@ -408,7 +423,7 @@ export const ExamsPage: React.FC = () => {
                           size="xs"
                           variant="ghost"
                           onClick={() => handleOpenEdit(exam)}
-                          title="Edit"
+                          title="Sửa"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </Button>
@@ -417,7 +432,7 @@ export const ExamsPage: React.FC = () => {
                           variant="ghost"
                           className="hover:text-rose-600"
                           onClick={() => setDeleteTarget({ id: exam.id, title: exam.title })}
-                          title="Delete"
+                          title="Xóa"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -458,9 +473,9 @@ export const ExamsPage: React.FC = () => {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleConfirmDelete}
-        title="Delete Examination"
-        description={`Are you sure you want to delete "${deleteTarget?.title}"? This will permanently remove its syllabus checklist and schedule from your calendar.`}
-        confirmText="Delete Exam"
+        title="Xóa kỳ thi"
+        description={`Bạn có chắc chắn muốn xóa kỳ thi "${deleteTarget?.title}"? Thao tác này sẽ xóa vĩnh viễn danh mục ôn tập và lịch thi khỏi hệ thống.`}
+        confirmText="Xóa kỳ thi"
         variant="danger"
       />
     </div>

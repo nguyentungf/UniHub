@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Clock,
   TrendingUp,
+  Target,
 } from 'lucide-react';
 import { StatCard, ConfirmDialog, EmptyState } from '@/components/common';
 import {
@@ -21,6 +22,8 @@ import {
   CardContent,
   Button,
   Badge,
+  Modal,
+  Input,
 } from '@/components/ui';
 import { GradeRecord, Semester, Course, GradingScale } from '@/types';
 import { WhatIfSimulatorCard } from './WhatIfSimulatorCard';
@@ -44,6 +47,7 @@ interface GpaOverviewTabProps {
   onOpenExplainerModal: () => void;
   onOpenScaleModal: () => void;
   onDeleteRecord: (record: GradeRecord) => Promise<void>;
+  onUpdateTargetGpa?: (semesterId: string, targetGpa: number) => Promise<void>;
 }
 
 export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
@@ -65,9 +69,38 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
   onOpenExplainerModal,
   onOpenScaleModal,
   onDeleteRecord,
+  onUpdateTargetGpa,
 }) => {
   const [deleteCandidate, setDeleteCandidate] = useState<GradeRecord | null>(null);
   const [showSimulator, setShowSimulator] = useState<boolean>(true);
+  const [isTargetModalOpen, setIsTargetModalOpen] = useState<boolean>(false);
+  const [targetGpaInput, setTargetGpaInput] = useState<string>('');
+  const [targetModalError, setTargetModalError] = useState<string | null>(null);
+
+  const activeSemesterObj = semesters.find(
+    (s) => s.id === (selectedSemesterId === 'all' ? activeSemesterSummary.semesterId : selectedSemesterId)
+  );
+
+  const handleOpenTargetModal = () => {
+    setTargetGpaInput(
+      activeSemesterObj?.targetGpa ? String(activeSemesterObj.targetGpa) : '3.8'
+    );
+    setTargetModalError(null);
+    setIsTargetModalOpen(true);
+  };
+
+  const handleSaveTargetGpa = async () => {
+    const parsed = parseFloat(targetGpaInput);
+    if (isNaN(parsed) || parsed < 0 || parsed > activeScale.maxGpa) {
+      setTargetModalError(`Mục tiêu GPA phải từ 0.0 đến ${activeScale.maxGpa.toFixed(1)}`);
+      return;
+    }
+    const targetSemId = activeSemesterObj?.id || activeSemesterSummary.semesterId;
+    if (onUpdateTargetGpa && targetSemId) {
+      await onUpdateTargetGpa(targetSemId, parsed);
+    }
+    setIsTargetModalOpen(false);
+  };
 
   const confirmDelete = async () => {
     if (deleteCandidate) {
@@ -82,7 +115,7 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 1. Cumulative GPA */}
         <StatCard
-          title="Cumulative GPA"
+          title="GPA Tích lũy"
           value={cumulativeSummary.cumulativeGpa.toFixed(2)}
           subtitle={cumulativeSummary.academicStanding.title}
           icon={Award}
@@ -95,53 +128,57 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
 
         {/* 2. Active Term GPA */}
         <StatCard
-          title="Active Semester GPA"
+          title="GPA Học kỳ"
           value={activeSemesterSummary.gpa.toFixed(2)}
-          subtitle={`${activeSemesterSummary.semesterName} Term`}
+          subtitle={`Học kỳ: ${activeSemesterSummary.semesterName}`}
           icon={Sparkles}
           iconColor="indigo"
           progress={{
             current: activeSemesterSummary.gpa,
-            total: activeScale.maxGpa,
+            total: activeSemesterSummary.targetGpa || activeScale.maxGpa,
             unit: 'GPA',
           }}
           trend={{
-            value: `${activeSemesterSummary.gradedCoursesCount} Graded · ${activeSemesterSummary.ungradedCoursesCount} In Progress`,
-            positive: activeSemesterSummary.gpa >= activeScale.maxGpa * 0.8,
+            value: activeSemesterSummary.targetGpa
+              ? `Mục tiêu: ${activeSemesterSummary.targetGpa.toFixed(2)} (${activeSemesterSummary.gpa >= activeSemesterSummary.targetGpa ? 'Đạt' : 'Chưa đạt'})`
+              : `${activeSemesterSummary.gradedCoursesCount} môn có điểm · ${activeSemesterSummary.ungradedCoursesCount} đang học`,
+            positive: activeSemesterSummary.targetGpa
+              ? activeSemesterSummary.gpa >= activeSemesterSummary.targetGpa
+              : activeSemesterSummary.gpa >= activeScale.maxGpa * 0.8,
           }}
         />
 
         {/* 3. Earned Credits towards degree */}
         <StatCard
-          title="Earned Credits"
+          title="Tín chỉ tích lũy"
           value={String(cumulativeSummary.totalCreditsEarned)}
-          subtitle={`of ${cumulativeSummary.totalCreditsAttempted} Attempted Units`}
+          subtitle={`trên ${cumulativeSummary.totalCreditsAttempted} tín chỉ đăng ký`}
           icon={BookOpen}
           iconColor="sky"
           progress={{
             current: cumulativeSummary.totalCreditsEarned,
             total: 120, // Degree requirement
-            unit: 'Units',
+            unit: 'Tín chỉ',
           }}
           trend={{
-            value: `${cumulativeSummary.totalCreditsInProgress} Units currently in-progress`,
+            value: `${cumulativeSummary.totalCreditsInProgress} tín chỉ đang học`,
             positive: true,
           }}
         />
 
         {/* 4. Weighted Percentage Score */}
         <StatCard
-          title="Weighted Avg Score (%)"
+          title="Điểm trung bình hệ 100"
           value={
             cumulativeSummary.overallWeightedPercentage !== null
               ? `${cumulativeSummary.overallWeightedPercentage.toFixed(1)}%`
               : 'N/A'
           }
-          subtitle="Credit-Weighted Mean (0 - 100%)"
+          subtitle="Điểm trung bình theo tín chỉ (0 - 100%)"
           icon={Percent}
           iconColor="amber"
           trend={{
-            value: 'Distinct from GPA quality points',
+            value: 'Khác với điểm hệ số GPA chất lượng',
             positive: true,
           }}
         />
@@ -150,14 +187,27 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
       {/* Action Header & Scale Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200/80 dark:border-slate-800 dark:bg-slate-900 shadow-2xs">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">Grading System:</span>
+          <span className="text-xs font-semibold text-slate-500">Thang điểm áp dụng:</span>
           <button
             onClick={onOpenScaleModal}
             className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-brand-50 border border-brand-200 text-xs font-bold text-brand-700 hover:bg-brand-100 dark:bg-brand-950/40 dark:border-brand-800 dark:text-brand-300 transition-colors"
           >
-            <span>{activeScale.name} (Max {activeScale.maxGpa.toFixed(1)})</span>
+            <span>{activeScale.name} (Tối đa {activeScale.maxGpa.toFixed(1)})</span>
             <Sliders className="h-3 w-3" />
           </button>
+
+          {activeSemesterObj && (
+            <button
+              onClick={handleOpenTargetModal}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-50 border border-indigo-200 text-xs font-bold text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-300 transition-colors"
+              title="Thiết lập mục tiêu GPA cho học kỳ này"
+            >
+              <Target className="h-3.5 w-3.5" />
+              <span>
+                Mục tiêu kỳ này: {activeSemesterObj.targetGpa ? activeSemesterObj.targetGpa.toFixed(2) : 'Chưa đặt'}
+              </span>
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -167,7 +217,7 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
             leftIcon={<HelpCircle className="h-3.5 w-3.5" />}
             onClick={onOpenExplainerModal}
           >
-            How GPA is Calculated
+            Cách tính điểm GPA
           </Button>
 
           <Button
@@ -176,7 +226,7 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
             leftIcon={<Plus className="h-3.5 w-3.5" />}
             onClick={onOpenAddModal}
           >
-            Add Course Grade
+            Thêm điểm môn học
           </Button>
         </div>
       </div>
@@ -187,10 +237,10 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
           <div>
             <CardTitle className="text-sm font-bold flex items-center gap-2">
               <Award className="h-4 w-4 text-brand-600" />
-              <span>Academic Course Grade Records</span>
+              <span>Bảng điểm các môn học</span>
             </CardTitle>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Verified course quality points, letter marks, and credit evaluations
+              Điểm số, điểm chữ và số tín chỉ được tính toán chính xác
             </p>
           </div>
 
@@ -204,7 +254,7 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
                   : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
               }`}
             >
-              All Semesters ({allGradeRecords.length})
+              Tất cả học kỳ ({allGradeRecords.length})
             </button>
             {semesters.map((s) => (
               <button
@@ -226,9 +276,9 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
           {filteredRecords.length === 0 ? (
             <EmptyState
               icon={BookOpen}
-              title="No Course Grades Found"
-              description="No grade records recorded for the selected semester filter."
-              actionLabel="Add Course Grade"
+              title="Chưa có điểm môn học nào"
+              description="Không có bản ghi điểm nào cho bộ lọc học kỳ đã chọn."
+              actionLabel="Thêm điểm môn học"
               onAction={onOpenAddModal}
             />
           ) : (
@@ -236,15 +286,15 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
               <table className="w-full text-xs">
                 <thead className="bg-slate-50 text-slate-700 dark:bg-slate-900/70 dark:text-slate-200 border-b border-slate-200 dark:border-slate-800">
                   <tr>
-                    <th className="py-2.5 px-3 text-left font-semibold">Course</th>
-                    <th className="py-2.5 px-3 text-left font-semibold">Semester</th>
-                    <th className="py-2.5 px-3 text-center font-semibold">Credits</th>
-                    <th className="py-2.5 px-3 text-center font-semibold">Percentage</th>
-                    <th className="py-2.5 px-3 text-center font-semibold">Letter</th>
-                    <th className="py-2.5 px-3 text-center font-semibold">Grade Point</th>
-                    <th className="py-2.5 px-3 text-right font-semibold">Quality Points (QP)</th>
-                    <th className="py-2.5 px-3 text-center font-semibold">Status</th>
-                    <th className="py-2.5 px-3 text-right font-semibold">Actions</th>
+                    <th className="py-2.5 px-3 text-left font-semibold">Môn học</th>
+                    <th className="py-2.5 px-3 text-left font-semibold">Học kỳ</th>
+                    <th className="py-2.5 px-3 text-center font-semibold">Tín chỉ</th>
+                    <th className="py-2.5 px-3 text-center font-semibold">Điểm %</th>
+                    <th className="py-2.5 px-3 text-center font-semibold">Điểm chữ</th>
+                    <th className="py-2.5 px-3 text-center font-semibold">Điểm hệ số</th>
+                    <th className="py-2.5 px-3 text-right font-semibold">Điểm chất lượng (QP)</th>
+                    <th className="py-2.5 px-3 text-center font-semibold">Trạng thái</th>
+                    <th className="py-2.5 px-3 text-right font-semibold">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
@@ -275,7 +325,7 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
 
                         {/* Semester */}
                         <td className="py-2.5 px-3 text-slate-500">
-                          {record.semesterName || 'Unknown Term'}
+                          {record.semesterName || 'Học kỳ khác'}
                         </td>
 
                         {/* Credits */}
@@ -302,11 +352,11 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
                             </Badge>
                           ) : isGraded ? (
                             <Badge variant="outline" size="sm">
-                              Grade {record.gradePoint?.toFixed(1)}
+                              Điểm {record.gradePoint?.toFixed(1)}
                             </Badge>
                           ) : (
                             <Badge variant="amber" size="sm" dot>
-                              Ungraded
+                              Chưa có điểm
                             </Badge>
                           )}
                         </td>
@@ -316,7 +366,7 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
                           {isGraded ? (
                             record.gradePoint!.toFixed(2)
                           ) : (
-                            <span className="text-amber-500 font-normal">Pending</span>
+                            <span className="text-amber-500 font-normal">Đang chờ</span>
                           )}
                         </td>
 
@@ -342,10 +392,10 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
                             size="sm"
                           >
                             {record.status === 'completed'
-                              ? 'Completed'
+                              ? 'Hoàn thành'
                               : record.status === 'enrolled'
-                              ? 'In Progress'
-                              : 'Dropped'}
+                              ? 'Đang học'
+                              : 'Đã hủy'}
                           </Badge>
                         </td>
 
@@ -354,14 +404,14 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => onOpenEditModal(record)}
-                              title="Edit Grade Record"
+                              title="Sửa bản ghi điểm"
                               className="p-1 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             >
                               <Edit2 className="h-3.5 w-3.5" />
                             </button>
                             <button
                               onClick={() => setDeleteCandidate(record)}
-                              title="Delete Grade Record"
+                              title="Xóa bản ghi điểm"
                               className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -396,11 +446,45 @@ export const GpaOverviewTab: React.FC<GpaOverviewTabProps> = ({
         isOpen={Boolean(deleteCandidate)}
         onClose={() => setDeleteCandidate(null)}
         onConfirm={confirmDelete}
-        title="Remove Grade Record"
-        description={`Are you sure you want to delete the grade record for ${deleteCandidate?.courseCode} - ${deleteCandidate?.courseName}? This will adjust your semester and cumulative GPA calculation.`}
-        confirmText="Remove Record"
+        title="Xóa bản ghi điểm"
+        description={`Bạn có chắc chắn muốn xóa bản ghi điểm cho môn ${deleteCandidate?.courseCode} - ${deleteCandidate?.courseName}? Hành động này sẽ điều chỉnh lại GPA học kỳ và tích lũy.`}
+        confirmText="Xóa bản ghi"
         variant="danger"
       />
+
+      {/* Target GPA Modal */}
+      <Modal
+        isOpen={isTargetModalOpen}
+        onClose={() => setIsTargetModalOpen(false)}
+        title={`Thiết lập mục tiêu GPA - ${activeSemesterObj?.name || 'Học kỳ'}`}
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Mục tiêu GPA được lưu trữ riêng biệt cho từng học kỳ để bạn chủ động theo dõi và đối sánh kỳ vọng.
+          </p>
+
+          <Input
+            label={`Mục tiêu GPA (Thang tối đa ${activeScale.maxGpa.toFixed(1)})`}
+            type="number"
+            step="0.01"
+            min="0"
+            max={activeScale.maxGpa}
+            value={targetGpaInput}
+            onChange={(e) => setTargetGpaInput(e.target.value)}
+            error={targetModalError || undefined}
+            placeholder="Ví dụ: 3.80"
+          />
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={() => setIsTargetModalOpen(false)}>
+              Hủy
+            </Button>
+            <Button variant="primary" size="sm" onClick={handleSaveTargetGpa}>
+              Lưu mục tiêu
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -70,7 +70,7 @@ export const AssignmentCalendarView: React.FC<AssignmentCalendarViewProps> = ({
     days = [];
   }
 
-  const weekDayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const weekDayNames = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
 
   return (
     <Card className="p-4 sm:p-5 space-y-4">
@@ -79,10 +79,10 @@ export const AssignmentCalendarView: React.FC<AssignmentCalendarViewProps> = ({
         <div className="flex items-center gap-2">
           <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <CalendarIcon className="h-4 w-4 text-brand-500" />
-            <span>{format(currentMonth, 'MMMM yyyy')}</span>
+            <span>Tháng {format(currentMonth, 'MM/yyyy')}</span>
           </h3>
           <Button size="xs" variant="outline" onClick={resetToToday}>
-            Today
+            Hôm nay
           </Button>
         </div>
 
@@ -90,14 +90,14 @@ export const AssignmentCalendarView: React.FC<AssignmentCalendarViewProps> = ({
           <div className="flex items-center gap-1">
             <button
               onClick={prevMonth}
-              aria-label="Previous Month"
+              aria-label="Tháng trước"
               className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={nextMonth}
-              aria-label="Next Month"
+              aria-label="Tháng sau"
               className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
             >
               <ChevronRight className="h-4 w-4" />
@@ -109,9 +109,9 @@ export const AssignmentCalendarView: React.FC<AssignmentCalendarViewProps> = ({
             variant="outline"
             leftIcon={<Download className="h-3.5 w-3.5" />}
             onClick={handleExportIcs}
-            title="Download iCalendar file for Google Calendar or Apple Calendar"
+            title="Tải tệp iCalendar cho Google Calendar hoặc Apple Calendar"
           >
-            Export .ICS
+            Xuất .ICS
           </Button>
         </div>
       </div>

@@ -18,7 +18,7 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, class
   if (!content.trim()) {
     return (
       <div className="py-12 text-center text-xs text-slate-400 italic">
-        No content written yet. Start typing markdown in the editor...
+        Chưa có nội dung. Bắt đầu viết ghi chú bằng Markdown ở khung soạn thảo...
       </div>
     );
   }
@@ -81,17 +81,17 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, class
                 <button
                   onClick={() => handleCopyCode(codeBody, index)}
                   className="flex items-center gap-1 hover:text-white transition-colors"
-                  title="Copy code"
+                  title="Sao chép đoạn mã"
                 >
                   {isCopied ? (
                     <>
                       <Check className="h-3 w-3 text-emerald-400" />
-                      <span className="text-emerald-400">Copied!</span>
+                      <span className="text-emerald-400">Đã chép!</span>
                     </>
                   ) : (
                     <>
                       <Copy className="h-3 w-3" />
-                      <span>Copy</span>
+                      <span>Sao chép</span>
                     </>
                   )}
                 </button>

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { StudySession, PomodoroSettings } from '@/types';
 import { studyRepository, settingsRepository, dataAccessLayer } from '@/lib/storage/dal';
+import { getDatabaseMode } from '@/lib/storage/db';
 import { SEED_DATA } from '@/constants/seedData';
 import { DEFAULT_POMODORO_SETTINGS } from '@/features/study/utils/timerEngine';
 
@@ -20,7 +21,7 @@ export interface StudyState {
 }
 
 export const useStudyStore = create<StudyState>((set, get) => ({
-  sessions: SEED_DATA.data.studySessions,
+  sessions: typeof window !== 'undefined' && getDatabaseMode() === 'real' ? [] : SEED_DATA.data.studySessions,
   settings: DEFAULT_POMODORO_SETTINGS,
   isLoading: false,
   error: null,
@@ -37,7 +38,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
       ]);
 
       set({
-        sessions: fetchedSessions.length > 0 ? fetchedSessions : SEED_DATA.data.studySessions,
+        sessions: fetchedSessions,
         settings: userSettings?.pomodoro || DEFAULT_POMODORO_SETTINGS,
         isLoading: false,
       });

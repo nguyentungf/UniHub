@@ -109,8 +109,8 @@ export const GradingScaleModal: React.FC<GradingScaleModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Grading Scale Settings & Configuration"
-      description="Choose your institution's grading system or customize your own cutoff boundaries"
+      title="Cấu hình & Thiết lập thang điểm"
+      description="Chọn hệ thống thang điểm của trường đại học hoặc tùy chỉnh mốc điểm của riêng bạn"
       size="xl"
     >
       <div className="space-y-6 pt-2 text-xs">
@@ -124,7 +124,7 @@ export const GradingScaleModal: React.FC<GradingScaleModalProps> = ({
         {/* Preset Scale Chooser */}
         <div>
           <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-            Select Grading Scale System
+            Chọn hệ thống thang điểm
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {scales.map((s) => {
@@ -150,12 +150,12 @@ export const GradingScaleModal: React.FC<GradingScaleModalProps> = ({
                     )}
                   </div>
                   <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                    <span>Max GPA: {s.maxGpa.toFixed(2)}</span>
+                    <span>GPA tối đa: {s.maxGpa.toFixed(2)}</span>
                     <span>·</span>
-                    <span>{s.tiers.length} Tiers</span>
+                    <span>{s.tiers.length} mức điểm</span>
                     {s.isCustom && (
                       <Badge variant="amber" size="sm">
-                        Custom
+                        Tùy chỉnh
                       </Badge>
                     )}
                   </div>
@@ -175,10 +175,10 @@ export const GradingScaleModal: React.FC<GradingScaleModalProps> = ({
                 leftIcon={<Sliders className="h-3.5 w-3.5" />}
                 onClick={handleStartCustomizing}
               >
-                Customize Scale Tiers
+                Tùy chỉnh các mức điểm
               </Button>
             ) : (
-              <Badge variant="brand">Editing Custom Scale Draft</Badge>
+              <Badge variant="brand">Đang chỉnh sửa bản nháp tùy chỉnh</Badge>
             )}
           </div>
 
@@ -192,7 +192,7 @@ export const GradingScaleModal: React.FC<GradingScaleModalProps> = ({
               setIsEditingCustom(false);
             }}
           >
-            Reset Defaults
+            Khôi phục mặc định
           </Button>
         </div>
 
@@ -201,15 +201,15 @@ export const GradingScaleModal: React.FC<GradingScaleModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 dark:bg-slate-900/40 dark:border-slate-800">
             <div className="sm:col-span-2">
               <Input
-                label="Custom Scale Name *"
+                label="Tên thang điểm tùy chỉnh *"
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
-                placeholder="e.g. My University 4.0 Scale"
+                placeholder="VD: Thang điểm 4.0 Đại học Bách Khoa"
               />
             </div>
             <div>
               <Input
-                label="Max GPA Scale *"
+                label="GPA tối đa *"
                 type="number"
                 step="0.01"
                 min="1"
@@ -225,7 +225,7 @@ export const GradingScaleModal: React.FC<GradingScaleModalProps> = ({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="font-bold text-slate-800 dark:text-slate-200">
-              Grade Tier Cutoffs & Point Weights
+              Bảng mốc điểm & Trọng số
             </span>
             {isEditingCustom && (
               <Button
@@ -234,7 +234,7 @@ export const GradingScaleModal: React.FC<GradingScaleModalProps> = ({
                 leftIcon={<Plus className="h-3.5 w-3.5" />}
                 onClick={handleAddTier}
               >
-                Add Tier
+                Thêm mức điểm
               </Button>
             )}
           </div>
@@ -243,12 +243,12 @@ export const GradingScaleModal: React.FC<GradingScaleModalProps> = ({
             <table className="w-full text-xs">
               <thead className="bg-slate-50 text-slate-700 dark:bg-slate-900/70 dark:text-slate-200 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
                 <tr>
-                  <th className="py-2 px-3 text-left font-semibold">Letter</th>
-                  <th className="py-2 px-3 text-center font-semibold">Grade Point</th>
-                  <th className="py-2 px-3 text-center font-semibold">Min %</th>
-                  <th className="py-2 px-3 text-center font-semibold">Max %</th>
-                  <th className="py-2 px-3 text-left font-semibold">Description</th>
-                  {isEditingCustom && <th className="py-2 px-3 text-right">Action</th>}
+                  <th className="py-2 px-3 text-left font-semibold">Điểm chữ</th>
+                  <th className="py-2 px-3 text-center font-semibold">Điểm hệ số</th>
+                  <th className="py-2 px-3 text-center font-semibold">% Tối thiểu</th>
+                  <th className="py-2 px-3 text-center font-semibold">% Tối đa</th>
+                  <th className="py-2 px-3 text-left font-semibold">Mô tả</th>
+                  {isEditingCustom && <th className="py-2 px-3 text-right">Thao tác</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -350,12 +350,12 @@ export const GradingScaleModal: React.FC<GradingScaleModalProps> = ({
         </div>
 
         {/* Modal Actions */}
-        <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+        <div className="sticky bottom-0 -mx-6 -mb-5 px-6 py-3.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2 z-10">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            Hủy
           </Button>
           <Button variant="primary" onClick={handleApplyAndSave}>
-            Apply Active Scale
+            Áp dụng thang điểm này
           </Button>
         </div>
       </div>

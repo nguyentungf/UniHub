@@ -262,11 +262,27 @@ export function calculateStudyTimeAnalytics(
   for (let i = 6; i >= 0; i--) {
     const d = new Date(referenceDate);
     d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
+
+    // Unify both dateStr and dayLabel in the EXACT SAME local timezone
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     const dayLabel = dayNames[d.getDay()];
 
     const minsOnDay = sessions
-      .filter((s) => s.startTime.startsWith(dateStr))
+      .filter((s) => {
+        try {
+          const sDate = new Date(s.startTime);
+          if (isNaN(sDate.getTime())) return false;
+          const sYear = sDate.getFullYear();
+          const sMonth = String(sDate.getMonth() + 1).padStart(2, '0');
+          const sDay = String(sDate.getDate()).padStart(2, '0');
+          return `${sYear}-${sMonth}-${sDay}` === dateStr;
+        } catch {
+          return false;
+        }
+      })
       .reduce((sum, s) => sum + s.durationMinutes, 0);
 
     dailyTrend.push({
@@ -348,16 +364,18 @@ export function calculateAcademicPeriodSummaries(
   const sevenDaysAgoMs = nowMs - 7 * 24 * 60 * 60 * 1000;
   const thirtyDaysAgoMs = nowMs - 30 * 24 * 60 * 60 * 1000;
 
-  // Weekly metrics
-  const weekSessions = sessions.filter(
-    (s) => new Date(s.startTime).getTime() >= sevenDaysAgoMs
-  );
+  // Weekly metrics: bound strictly between sevenDaysAgoMs and referenceDate (nowMs)
+  const weekSessions = sessions.filter((s) => {
+    const sessionTime = new Date(s.startTime).getTime();
+    return sessionTime >= sevenDaysAgoMs && sessionTime <= nowMs;
+  });
   const weekStudyMinutes = weekSessions.reduce((acc, s) => acc + s.durationMinutes, 0);
   const weekStudyHours = parseFloat((weekStudyMinutes / 60).toFixed(1));
 
   const weekAssignments = assignments.filter((a) => {
     const isCompleted = a.status === 'completed' || a.status === 'submitted' || a.status === 'graded';
-    return isCompleted && new Date(a.dueDate).getTime() >= sevenDaysAgoMs;
+    const dueTime = new Date(a.dueDate).getTime();
+    return isCompleted && dueTime >= sevenDaysAgoMs && dueTime <= nowMs;
   });
 
   const weekExams = exams.filter(
@@ -375,16 +393,18 @@ export function calculateAcademicPeriodSummaries(
     )
   );
 
-  // Monthly metrics
-  const monthSessions = sessions.filter(
-    (s) => new Date(s.startTime).getTime() >= thirtyDaysAgoMs
-  );
+  // Monthly metrics: bound strictly between thirtyDaysAgoMs and referenceDate (nowMs)
+  const monthSessions = sessions.filter((s) => {
+    const sessionTime = new Date(s.startTime).getTime();
+    return sessionTime >= thirtyDaysAgoMs && sessionTime <= nowMs;
+  });
   const monthStudyMinutes = monthSessions.reduce((acc, s) => acc + s.durationMinutes, 0);
   const monthStudyHours = parseFloat((monthStudyMinutes / 60).toFixed(1));
 
   const monthAssignments = assignments.filter((a) => {
     const isCompleted = a.status === 'completed' || a.status === 'submitted' || a.status === 'graded';
-    return isCompleted && new Date(a.dueDate).getTime() >= thirtyDaysAgoMs;
+    const dueTime = new Date(a.dueDate).getTime();
+    return isCompleted && dueTime >= thirtyDaysAgoMs && dueTime <= nowMs;
   });
 
   const monthExams = exams.filter(
@@ -406,16 +426,22 @@ export function calculateAcademicPeriodSummaries(
       studyHours: weekStudyHours,
       assignmentsCompleted: weekAssignments.length,
       examsHandled: weekExams.length,
-      momentumScore: weekMomentum || 82, // Baseline fallback for realistic demo
-      summaryHighlight: `${weekStudyHours}h focused study with ${weekAssignments.length} assignments delivered`,
+      momentumScore: weekMomentum,
+      summaryHighlight:
+        weekStudyHours > 0 || weekAssignments.length > 0
+          ? `${weekStudyHours}h học tập tập trung với ${weekAssignments.length} bài tập đã hoàn thành`
+          : 'Chưa có hoạt động học tập nào trong tuần này',
     },
     monthly: {
       periodLabel: 'This Month',
       studyHours: monthStudyHours,
       assignmentsCompleted: monthAssignments.length,
       examsHandled: monthExams.length,
-      momentumScore: monthMomentum || 88,
-      summaryHighlight: `High consistency with ${monthStudyHours}h logged and ${monthAssignments.length} tasks completed`,
+      momentumScore: monthMomentum,
+      summaryHighlight:
+        monthStudyHours > 0 || monthAssignments.length > 0
+          ? `Ghi nhận ${monthStudyHours}h học tập và ${monthAssignments.length} bài tập hoàn thành`
+          : 'Chưa có hoạt động học tập nào trong 30 ngày qua',
     },
   };
 }

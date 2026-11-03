@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Course, Semester } from '@/types';
 import { CourseFormSchema } from '@/lib/validation/schemas';
 import { Modal, Input, Select, Button, Textarea } from '@/components/ui';
+import { useSettingsStore } from '@/stores';
+import { parseStudyWeeks } from '../utils/courseProgress';
 
 interface CourseFormModalProps {
   isOpen: boolean;
@@ -23,6 +25,52 @@ const PRESET_COLORS = [
   '#6366F1', // Indigo
 ];
 
+function getTargetGradeOptions(scaleType: '4.0' | '10.0' | 'letter') {
+  if (scaleType === '10.0') {
+    return [
+      { value: '10.0', label: '10.0 (Xuất sắc)' },
+      { value: '9.5', label: '9.5 (Xuất sắc)' },
+      { value: '9.0', label: '9.0 (Xuất sắc)' },
+      { value: '8.5', label: '8.5 (Giỏi)' },
+      { value: '8.0', label: '8.0 (Giỏi)' },
+      { value: '7.5', label: '7.5 (Khá)' },
+      { value: '7.0', label: '7.0 (Khá)' },
+      { value: '6.5', label: '6.5 (Trung bình khá)' },
+      { value: '6.0', label: '6.0 (Trung bình)' },
+      { value: '5.5', label: '5.5 (Trung bình)' },
+      { value: '5.0', label: '5.0 (Trung bình yếu)' },
+      { value: '4.0', label: '4.0 (Đạt tối thiểu)' },
+    ];
+  }
+
+  if (scaleType === 'letter') {
+    return [
+      { value: 'A+', label: 'Điểm A+ (Xuất sắc)' },
+      { value: 'A', label: 'Điểm A (Giỏi)' },
+      { value: 'B+', label: 'Điểm B+ (Khá giỏi)' },
+      { value: 'B', label: 'Điểm B (Khá)' },
+      { value: 'C+', label: 'Điểm C+ (Trung bình khá)' },
+      { value: 'C', label: 'Điểm C (Trung bình)' },
+      { value: 'D+', label: 'Điểm D+ (Trung bình yếu)' },
+      { value: 'D', label: 'Điểm D (Đạt tối thiểu)' },
+    ];
+  }
+
+  // scaleType === '4.0'
+  return [
+    { value: 'A+', label: 'A+ (4.0 - Xuất sắc)' },
+    { value: 'A', label: 'A (4.0 - Giỏi)' },
+    { value: 'A-', label: 'A- (3.7 - Giỏi)' },
+    { value: 'B+', label: 'B+ (3.3 - Khá)' },
+    { value: 'B', label: 'B (3.0 - Khá)' },
+    { value: 'B-', label: 'B- (2.7 - Khá)' },
+    { value: 'C+', label: 'C+ (2.3 - TB khá)' },
+    { value: 'C', label: 'C (2.0 - Trung bình)' },
+    { value: 'D+', label: 'D+ (1.3 - TB yếu)' },
+    { value: 'D', label: 'D (1.0 - Đạt)' },
+  ];
+}
+
 export const CourseFormModal: React.FC<CourseFormModalProps> = ({
   isOpen,
   onClose,
@@ -32,6 +80,9 @@ export const CourseFormModal: React.FC<CourseFormModalProps> = ({
   activeSemesterId,
 }) => {
   const isEditing = !!initialData;
+  const gradingScaleType = useSettingsStore((state) => state.settings.gradingScaleType);
+  const targetGradeOptions = getTargetGradeOptions(gradingScaleType);
+  const defaultTargetGrade = gradingScaleType === '10.0' ? '8.5' : 'A';
 
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -40,9 +91,9 @@ export const CourseFormModal: React.FC<CourseFormModalProps> = ({
   const [instructor, setInstructor] = useState('');
   const [location, setLocation] = useState('');
   const [color, setColor] = useState('#3B82F6');
-  const [targetGrade, setTargetGrade] = useState('A');
+  const [targetGrade, setTargetGrade] = useState(defaultTargetGrade);
   const [status, setStatus] = useState<Course['status']>('enrolled');
-  const [totalLessons, setTotalLessons] = useState('20');
+  const [studyWeeks, setStudyWeeks] = useState('2-19');
   const [syllabusUrl, setSyllabusUrl] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -58,9 +109,12 @@ export const CourseFormModal: React.FC<CourseFormModalProps> = ({
       setInstructor(initialData.instructor || '');
       setLocation(initialData.location || '');
       setColor(initialData.color);
-      setTargetGrade(initialData.targetGrade || 'A');
+      setTargetGrade(initialData.targetGrade || defaultTargetGrade);
       setStatus(initialData.status);
-      setTotalLessons(String(initialData.totalLessons ?? 20));
+      setStudyWeeks(
+        initialData.studyWeeks ||
+        (initialData.totalLessons ? `1-${initialData.totalLessons}` : '2-19')
+      );
       setSyllabusUrl(initialData.syllabusUrl || '');
       setNotes(initialData.notes || '');
     } else {
@@ -71,30 +125,37 @@ export const CourseFormModal: React.FC<CourseFormModalProps> = ({
       setInstructor('');
       setLocation('');
       setColor(PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)]);
-      setTargetGrade('A');
+      setTargetGrade(defaultTargetGrade);
       setStatus('enrolled');
-      setTotalLessons('20');
+      setStudyWeeks('2-19');
       setSyllabusUrl('');
       setNotes('');
     }
     setErrors({});
-  }, [initialData, isOpen, semesters, activeSemesterId]);
+  }, [initialData, isOpen, semesters, activeSemesterId, defaultTargetGrade]);
+
+  const parsedWeeks = parseStudyWeeks(studyWeeks);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
 
+    const calculatedLessons = parsedWeeks.length > 0 ? parsedWeeks.length : 16;
+    const parsedCredits = parseInt(credits, 10);
+    const effectiveCredits = isNaN(parsedCredits) ? 0 : parsedCredits;
+
     const formData = {
       code: code.trim().toUpperCase(),
       name: name.trim(),
-      credits: parseInt(credits, 10) || 3,
+      credits: effectiveCredits,
       semesterId,
       instructor: instructor.trim() || undefined,
       location: location.trim() || undefined,
       color,
       targetGrade: targetGrade.trim() || undefined,
       status,
-      totalLessons: parseInt(totalLessons, 10) || 20,
+      studyWeeks: studyWeeks.trim() || undefined,
+      totalLessons: calculatedLessons,
       syllabusUrl: syllabusUrl.trim() || undefined,
       notes: notes.trim() || undefined,
     };
@@ -125,6 +186,7 @@ export const CourseFormModal: React.FC<CourseFormModalProps> = ({
         syllabusUrl: formData.syllabusUrl,
         targetGrade: formData.targetGrade,
         status: formData.status,
+        studyWeeks: formData.studyWeeks,
         totalLessons: formData.totalLessons,
         completedLessons: initialData?.completedLessons ?? 0,
         lessons: initialData?.lessons ?? [],
@@ -151,13 +213,13 @@ export const CourseFormModal: React.FC<CourseFormModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? `Edit Course · ${initialData.code}` : 'Enroll in New Course'}
+      title={isEditing ? `Cập nhật môn học · ${initialData.code}` : 'Đăng ký môn học mới'}
       description={
         isEditing
-          ? 'Update course metadata, instructor, classroom, and credit weighting'
-          : 'Add a new academic course, syllabus, credit weight, and color tag'
+          ? 'Cập nhật thông tin môn học, giảng viên, phòng học, tuần học và điểm mục tiêu'
+          : 'Thêm môn học mới, số tín chỉ, màu sắc nhận diện, tuần học và đề cương'
       }
-      size="lg"
+      size="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {errors.form && (
@@ -166,11 +228,12 @@ export const CourseFormModal: React.FC<CourseFormModalProps> = ({
           </div>
         )}
 
+        {/* Row 1: Course Code & Course Name */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <Input
-              label="Course Code *"
-              placeholder="e.g. CS201"
+              label="Mã môn học *"
+              placeholder="vd: CS201"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               error={errors.code}
@@ -179,8 +242,8 @@ export const CourseFormModal: React.FC<CourseFormModalProps> = ({
           </div>
           <div className="sm:col-span-2">
             <Input
-              label="Course Title *"
-              placeholder="e.g. Data Structures & Algorithms"
+              label="Tên môn học *"
+              placeholder="vd: Cấu trúc dữ liệu & Giải thuật"
               value={name}
               onChange={(e) => setName(e.target.value)}
               error={errors.name}
@@ -189,64 +252,80 @@ export const CourseFormModal: React.FC<CourseFormModalProps> = ({
           </div>
         </div>
 
+        {/* Row 2: Semester, Credits, Study Weeks */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Select
-            label="Semester *"
+            label="Học kỳ *"
             value={semesterId}
             onChange={(e) => setSemesterId(e.target.value)}
             error={errors.semesterId}
             options={semesters.map((s) => ({
               value: s.id,
-              label: `${s.name} ${s.isCurrent ? '(Current)' : ''}`,
+              label: `${s.name} ${s.isCurrent ? '(Hiện tại)' : ''}`,
             }))}
           />
           <Select
-            label="Credits *"
+            label="Số tín chỉ *"
             value={credits}
             onChange={(e) => setCredits(e.target.value)}
             error={errors.credits}
             options={[
-              { value: '1', label: '1 Credit' },
-              { value: '2', label: '2 Credits' },
-              { value: '3', label: '3 Credits' },
-              { value: '4', label: '4 Credits' },
-              { value: '5', label: '5 Credits' },
-              { value: '6', label: '6 Credits' },
+              { value: '0', label: '0 Tín chỉ (Không tính GPA/CPA)' },
+              { value: '1', label: '1 Tín chỉ' },
+              { value: '2', label: '2 Tín chỉ' },
+              { value: '3', label: '3 Tín chỉ' },
+              { value: '4', label: '4 Tín chỉ' },
+              { value: '5', label: '5 Tín chỉ' },
+              { value: '6', label: '6 Tín chỉ' },
             ]}
           />
-          <Input
-            label="Planned Total Lessons"
-            type="number"
-            min={1}
-            max={100}
-            value={totalLessons}
-            onChange={(e) => setTotalLessons(e.target.value)}
-            error={errors.totalLessons}
-          />
+          <div>
+            <Input
+              label="Tuần học*"
+              placeholder="vd: 2-19 hoặc 2-9, 11-18"
+              value={studyWeeks}
+              onChange={(e) => setStudyWeeks(e.target.value)}
+              error={errors.studyWeeks}
+              required
+            />
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              {parsedWeeks.length > 0 ? (
+                <span className="font-medium text-brand-600 dark:text-brand-400">
+                  Quy đổi: {parsedWeeks.length} buổi học (Tuần {parsedWeeks[0]} → {parsedWeeks[parsedWeeks.length - 1]})
+                </span>
+              ) : (
+                <span className="text-amber-600 dark:text-amber-400">
+                  Vui lòng nhập định dạng tuần hợp lệ
+                </span>
+              )}
+            </p>
+          </div>
         </div>
 
+        {/* Row 3: Instructor & Location */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input
-            label="Professor / Instructor"
-            placeholder="e.g. Dr. Sarah Mitchell"
+            label="Mã lớp học phần"
+            placeholder="vd: 173808"
             value={instructor}
             onChange={(e) => setInstructor(e.target.value)}
           />
           <Input
-            label="Classroom / Location"
-            placeholder="e.g. Turing Hall - Room 302"
+            label="Phòng học / Địa điểm"
+            placeholder="vd: Nhà A - Phòng 302"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Row 4: Color Picker (Left) & Target Grade + Status (Right) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
           {/* Color coding picker */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Course Color Tag *
+              Màu nhận diện môn học *
             </label>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap pt-0.5">
               {PRESET_COLORS.map((hex) => (
                 <button
                   type="button"
@@ -266,7 +345,7 @@ export const CourseFormModal: React.FC<CourseFormModalProps> = ({
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 className="h-7 w-8 cursor-pointer rounded border border-slate-200 dark:border-slate-700 bg-transparent"
-                title="Custom Color"
+                title="Tùy chọn màu khác"
               />
             </div>
             {errors.color && <p className="text-[11px] text-rose-500 mt-1">{errors.color}</p>}
@@ -274,34 +353,27 @@ export const CourseFormModal: React.FC<CourseFormModalProps> = ({
 
           <div className="grid grid-cols-2 gap-2">
             <Select
-              label="Target Grade"
+              label={`Điểm mục tiêu`}
               value={targetGrade}
               onChange={(e) => setTargetGrade(e.target.value)}
-              options={[
-                { value: 'A+', label: 'A+ (4.0)' },
-                { value: 'A', label: 'A (4.0)' },
-                { value: 'A-', label: 'A- (3.7)' },
-                { value: 'B+', label: 'B+ (3.3)' },
-                { value: 'B', label: 'B (3.0)' },
-                { value: 'C+', label: 'C+ (2.3)' },
-                { value: 'C', label: 'C (2.0)' },
-              ]}
+              options={targetGradeOptions}
             />
             <Select
-              label="Enrollment Status"
+              label="Trạng thái học phần"
               value={status}
               onChange={(e) => setStatus(e.target.value as Course['status'])}
               options={[
-                { value: 'enrolled', label: 'Enrolled' },
-                { value: 'completed', label: 'Completed' },
-                { value: 'dropped', label: 'Dropped' },
+                { value: 'enrolled', label: 'Đang theo học' },
+                { value: 'completed', label: 'Đã hoàn thành' },
+                { value: 'dropped', label: 'Đã hủy môn' },
               ]}
             />
           </div>
         </div>
 
+        {/* Row 5: Syllabus URL */}
         <Input
-          label="Syllabus URL (Optional)"
+          label="Đường dẫn đề cương môn học (Tùy chọn)"
           placeholder="https://example.edu/syllabus"
           type="url"
           value={syllabusUrl}
@@ -309,20 +381,21 @@ export const CourseFormModal: React.FC<CourseFormModalProps> = ({
           error={errors.syllabusUrl}
         />
 
+        {/* Row 6: Notes */}
         <Textarea
-          label="Course Notes & Office Hours"
-          placeholder="e.g. Office hours on Tuesdays 14:00 - 16:00. Bring laptop with compiler installed."
+          label="Ghi chú môn học & Giờ tiếp sinh viên"
+          placeholder="vd: Giờ tiếp SV Thứ 3 lúc 14:00 - 16:00. Nhớ mang laptop đã cài môi trường thực hành."
           rows={2}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
 
-        <div className="pt-4 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="sticky bottom-0 -mx-6 -mb-5 px-6 py-3.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 z-10">
           <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
-            Cancel
+            Hủy
           </Button>
           <Button type="submit" size="sm" isLoading={isSubmitting}>
-            {isEditing ? 'Save Changes' : 'Enroll Course'}
+            {isEditing ? 'Lưu thay đổi' : 'Đăng ký môn'}
           </Button>
         </div>
       </form>

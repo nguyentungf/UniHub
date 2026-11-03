@@ -39,15 +39,15 @@ export function formatDeadlineRelative(dateString: string): { label: string; isO
     const now = new Date();
 
     if (isToday(date)) {
-      return { label: `Today, ${format(date, 'HH:mm')}`, isOverdue: false };
+      return { label: `Hôm nay, ${format(date, 'HH:mm')}`, isOverdue: false };
     }
     if (isTomorrow(date)) {
-      return { label: `Tomorrow, ${format(date, 'HH:mm')}`, isOverdue: false };
+      return { label: `Ngày mai, ${format(date, 'HH:mm')}`, isOverdue: false };
     }
     if (isPast(date) && !isToday(date)) {
-      return { label: `${formatDistanceToNow(date)} ago`, isOverdue: true };
+      return { label: `Quá hạn ${formatDistanceToNow(date)}`, isOverdue: true };
     }
-    return { label: `In ${formatDistanceToNow(date)}`, isOverdue: false };
+    return { label: `Còn ${formatDistanceToNow(date)}`, isOverdue: false };
   } catch {
     return { label: dateString, isOverdue: false };
   }
@@ -76,4 +76,18 @@ export function gradePointToLetter(grade: number): string {
   if (grade >= 2.0) return 'C';
   if (grade >= 1.0) return 'D';
   return 'F';
+}
+
+/**
+ * Extract 1-2 uppercase initials from a human name.
+ * If empty or whitespace, returns empty string.
+ */
+export function getInitials(name?: string): string {
+  if (!name || typeof name !== 'string') return '';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }

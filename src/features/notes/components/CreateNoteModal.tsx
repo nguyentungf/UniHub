@@ -37,7 +37,7 @@ export const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
     try {
       const parsedTags = cleanTags(tagsInput);
       const initialContent =
-        content.trim() || `# ${title.trim()}\n\nWrite your lecture notes, formulas, or summaries here...`;
+        content.trim() || `# ${title.trim()}\n\nViết ghi chú bài giảng, công thức hoặc tóm tắt kiến thức ở đây...`;
 
       await onCreate({
         title: title.trim(),
@@ -63,14 +63,14 @@ export const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Create New Study Note"
-      description="Capture lecture concepts, algorithms, exam cheatsheets, or revision notes"
+      title="Tạo ghi chú học tập mới"
+      description="Lưu lại kiến thức bài giảng, thuật toán, tài liệu ôn thi hoặc ghi chú môn học"
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
         <Input
-          label="Note Title *"
-          placeholder="e.g. Graph Traversals (BFS & DFS) or Linear Transformations"
+          label="Tiêu đề ghi chú *"
+          placeholder="Ví dụ: Duyệt đồ thị (BFS & DFS) hoặc Biến đổi tuyến tính"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
@@ -78,26 +78,26 @@ export const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Select
-            label="Course Link"
+            label="Môn học liên kết"
             value={courseId}
             onChange={(e) => setCourseId(e.target.value)}
             options={[
-              { value: '', label: 'General / No Course' },
+              { value: '', label: 'Tự do / Không gắn môn' },
               ...courses.map((c) => ({ value: c.id, label: `${c.code} · ${c.name}` })),
             ]}
           />
 
           <Input
-            label="Tags (comma-separated)"
-            placeholder="e.g. algorithms, graphs, midterm"
+            label="Thẻ (phân tách bằng dấu phẩy)"
+            placeholder="Ví dụ: thuat-toan, do-thi, giua-ky"
             value={tagsInput}
             onChange={(e) => setTagsInput(e.target.value)}
           />
         </div>
 
         <Textarea
-          label="Initial Markdown Content"
-          placeholder="# Main Topic&#10;&#10;Key concepts:&#10;- Principle 1&#10;- Principle 2"
+          label="Nội dung Markdown ban đầu"
+          placeholder="# Chủ đề chính&#10;&#10;Khái niệm cốt lõi:&#10;- Nguyên lý 1&#10;- Nguyên lý 2"
           rows={6}
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -111,16 +111,16 @@ export const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
             className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
           />
           <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-            Pin this note to the top of the vault
+            Ghim ghi chú này lên đầu danh sách
           </span>
         </label>
 
-        <div className="pt-4 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="sticky bottom-0 -mx-6 -mb-5 px-6 py-3.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 z-10">
           <Button type="button" variant="outline" size="sm" onClick={onClose}>
-            Cancel
+            Hủy
           </Button>
           <Button type="submit" size="sm" isLoading={isSubmitting}>
-            Create Note
+            Tạo ghi chú
           </Button>
         </div>
       </form>

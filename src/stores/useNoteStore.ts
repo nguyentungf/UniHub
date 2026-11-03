@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Note } from '@/types';
 import { noteRepository, dataAccessLayer } from '@/lib/storage/dal';
+import { getDatabaseMode } from '@/lib/storage/db';
 import { SEED_DATA } from '@/constants/seedData';
 
 export interface NoteState {
@@ -28,8 +29,8 @@ export interface NoteState {
 }
 
 export const useNoteStore = create<NoteState>((set, get) => ({
-  notes: SEED_DATA.data.notes,
-  activeNoteId: SEED_DATA.data.notes[0]?.id || null,
+  notes: typeof window !== 'undefined' && getDatabaseMode() === 'real' ? [] : SEED_DATA.data.notes,
+  activeNoteId: typeof window !== 'undefined' && getDatabaseMode() === 'real' ? null : (SEED_DATA.data.notes[0]?.id || null),
   isLoading: false,
   isSaving: false,
   error: null,
@@ -43,7 +44,7 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     try {
       await dataAccessLayer.initializeSeedDataIfNeeded();
       const fetched = await noteRepository.getAll();
-      const notesList = fetched.length > 0 ? fetched : SEED_DATA.data.notes;
+      const notesList = fetched;
 
       // Sort pinned notes first, then latest updatedAt
       const sorted = [...notesList].sort((a, b) => {

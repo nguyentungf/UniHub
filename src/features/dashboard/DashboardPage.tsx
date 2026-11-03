@@ -18,7 +18,23 @@ import { StatCard, PageHeader, LoadingState, EmptyState } from '@/components/com
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { SEED_DATA } from '@/constants/seedData';
 import { formatDeadlineRelative, formatDate } from '@/lib/utils';
-import { useAssignmentStore, useExamStore, useCourseStore } from '@/stores';
+import {
+  useAssignmentStore,
+  useExamStore,
+  useCourseStore,
+  useSettingsStore,
+  useTimetableStore,
+  useStudyStore,
+} from '@/stores';
+import { getTodayDayOfWeek } from '@/stores/useTimetableStore';
+import { getDatabaseMode } from '@/lib/storage/db';
+import { normalizeCourseToGradeRecord, calculateSemesterGpa } from '@/features/gpa/utils/gpaLogic';
+import { DEFAULT_GRADING_SCALES } from '@/features/gpa/utils/gradingScales';
+import {
+  calculateWeeklyStats,
+  calculateStudyStreak,
+  calculateDailyFocusTrend,
+} from '@/features/study/utils/studyAnalytics';
 import { selectUpcomingDeadlines } from '@/features/assignments';
 import { selectNextExam } from '@/features/exams';
 import {
@@ -34,55 +50,126 @@ import {
 export const DashboardPage: React.FC = () => {
   const [viewState, setViewState] = useState<'normal' | 'loading' | 'empty'>('normal');
 
-  const { settings, timetable } = SEED_DATA.data;
-  const currentSemester = SEED_DATA.data.semesters.find((s) => s.isCurrent);
+  const settings = useSettingsStore((state) => state.settings);
+  const dbMode = getDatabaseMode();
 
   // Store subscriptions
-  const liveCourses = useCourseStore((state) => state.courses);
-  const liveAssignments = useAssignmentStore((state) => state.assignments);
-  const liveExams = useExamStore((state) => state.exams);
+  const courses = useCourseStore((state) => state.courses);
+  const semesters = useCourseStore((state) => state.semesters);
+  const assignments = useAssignmentStore((state) => state.assignments);
+  const exams = useExamStore((state) => state.exams);
+  const timetable = useTimetableStore((state) => state.slots);
+  const sessions = useStudyStore((state) => state.sessions);
+
   const loadCourses = useCourseStore((state) => state.loadCourses);
   const loadAssignments = useAssignmentStore((state) => state.loadAssignments);
   const loadExams = useExamStore((state) => state.loadExams);
+  const loadSlots = useTimetableStore((state) => state.loadSlots);
+  const loadSessions = useStudyStore((state) => state.loadSessions);
 
   useEffect(() => {
     loadCourses();
     loadAssignments();
     loadExams();
-  }, [loadCourses, loadAssignments, loadExams]);
+    loadSlots();
+    loadSessions();
+  }, [loadCourses, loadAssignments, loadExams, loadSlots, loadSessions]);
 
-  const courses = liveCourses.length > 0 ? liveCourses : SEED_DATA.data.courses;
-  const assignments = liveAssignments.length > 0 ? liveAssignments : SEED_DATA.data.assignments;
-  const exams = liveExams.length > 0 ? liveExams : SEED_DATA.data.exams;
+  const currentSemester = semesters.find((s) => s.isCurrent) || semesters[0];
 
-  // Today is Monday in demo
+  // Dynamic Courses & Credits calculation
+  const semesterCourses = currentSemester
+    ? courses.filter((c) => c.semesterId === currentSemester.id)
+    : courses;
+  const totalCredits = semesterCourses.reduce((sum, c) => sum + (c.credits || 0), 0);
+
+  // Dynamic GPA Calculation
+  const gradeRecords = semesterCourses.map((c) => normalizeCourseToGradeRecord(c, currentSemester?.name));
+  const semesterGpa = calculateSemesterGpa(gradeRecords, DEFAULT_GRADING_SCALES[0], currentSemester?.id, currentSemester?.name);
+  const hasGradedCourses = semesterGpa.gradedCoursesCount > 0;
+  const gpaValue = hasGradedCourses ? semesterGpa.gpa.toFixed(2) : '0.00';
+  const gpaSubtitle = hasGradedCourses
+    ? `/ 4.00 (${semesterGpa.gradedCoursesCount}/${semesterCourses.length} môn có điểm)`
+    : currentSemester?.targetGpa
+    ? `Mục tiêu kỳ này: ${currentSemester.targetGpa.toFixed(2)}`
+    : 'Chưa có điểm môn nào';
+
+  // Dynamic Assignments belonging to current semester (or all if course not found)
+  const semesterCourseIds = new Set(semesterCourses.map((c) => c.id));
+  const semesterAssignments = semesterCourses.length > 0
+    ? assignments.filter((a) => semesterCourseIds.has(a.courseId))
+    : assignments;
+  const activeAssignments = semesterAssignments.filter((a) => a.status !== 'completed');
+  const urgentAssignmentsCount = activeAssignments.filter((a) => a.priority === 'urgent' || a.priority === 'high').length;
+  const now = new Date();
+  const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const dueThisWeekCount = activeAssignments.filter((a) => {
+    try {
+      const d = new Date(a.dueDate);
+      return d >= now && d <= next7Days;
+    } catch {
+      return false;
+    }
+  }).length;
+
+  // Dynamic Study Time & Weekly Trend
+  const weeklyStudyStats = calculateWeeklyStats(sessions);
+  const studyStreak = calculateStudyStreak(sessions);
+  const rawFocusTrend = calculateDailyFocusTrend(sessions, 7);
+  const dayMapVi: Record<string, string> = {
+    Mon: 'T2',
+    Tue: 'T3',
+    Wed: 'T4',
+    Thu: 'T5',
+    Fri: 'T6',
+    Sat: 'T7',
+    Sun: 'CN',
+  };
+  const weeklyStudyData = rawFocusTrend.map((item) => ({
+    day: dayMapVi[item.dayLabel] || item.dayLabel,
+    hours: item.hours,
+  }));
+
+  // Today's classes based on actual Day of Week
+  const todayDayOfWeek = getTodayDayOfWeek();
+  const dayNameViMap: Record<number, string> = {
+    1: 'Thứ Hai',
+    2: 'Thứ Ba',
+    3: 'Thứ Tư',
+    4: 'Thứ Năm',
+    5: 'Thứ Sáu',
+    6: 'Thứ Bảy',
+    7: 'Chủ Nhật',
+  };
+  const todayName = dayNameViMap[todayDayOfWeek] || 'Hôm nay';
   const todaysClasses = timetable
-    .filter((slot) => slot.dayOfWeek === 1)
+    .filter((slot) => slot.dayOfWeek === todayDayOfWeek)
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   const upcomingDeadlines = selectUpcomingDeadlines(assignments, courses, 3);
   const nextExam = selectNextExam(exams, courses);
 
-  const weeklyStudyData = [
-    { day: 'Mon', hours: 3.5 },
-    { day: 'Tue', hours: 4.2 },
-    { day: 'Wed', hours: 2.8 },
-    { day: 'Thu', hours: 5.0 },
-    { day: 'Fri', hours: 3.0 },
-    { day: 'Sat', hours: 6.5 },
-    { day: 'Sun', hours: 4.0 },
-  ];
-
   return (
     <div className="space-y-6">
-      {/* Top Header & State Toggle for demonstration */}
+      {/* Top Header & State Toggle */}
       <PageHeader
-        title={`Welcome back, ${settings.studentName} 👋`}
-        subtitle={`${settings.major} · ${settings.universityName} · ${currentSemester?.name}`}
+        title={`Chào mừng trở lại, ${settings.studentName} 👋`}
+        subtitle={`${settings.major} · ${settings.universityName} · ${currentSemester?.name || 'Học kỳ mới'}`}
         badge={
-          <Badge variant="brand" dot>
-            Semester in Progress
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="brand" dot>
+              {currentSemester?.name || 'Học kỳ đang diễn ra'}
+            </Badge>
+            {dbMode === 'real' ? (
+              <Badge variant="emerald" dot>
+                Dữ liệu thực tế (Trường trắng)
+              </Badge>
+            ) : (
+              <Badge variant="amber" dot>
+                Dữ liệu mẫu (Demo)
+              </Badge>
+            )}
+          </div>
         }
         actions={
           <div className="flex items-center gap-2">
@@ -95,7 +182,7 @@ export const DashboardPage: React.FC = () => {
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
                 }`}
               >
-                Normal
+                Chuẩn
               </button>
               <button
                 onClick={() => setViewState('loading')}
@@ -105,7 +192,7 @@ export const DashboardPage: React.FC = () => {
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
                 }`}
               >
-                Loading
+                Đang tải
               </button>
               <button
                 onClick={() => setViewState('empty')}
@@ -115,12 +202,12 @@ export const DashboardPage: React.FC = () => {
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
                 }`}
               >
-                Empty
+                Trống
               </button>
             </div>
             <NavLink to="/study">
               <Button size="sm" leftIcon={<Flame className="h-4 w-4 text-brand-200" />}>
-                Focus Session
+                Phiên tập trung
               </Button>
             </NavLink>
           </div>
@@ -132,9 +219,9 @@ export const DashboardPage: React.FC = () => {
       {viewState === 'empty' && (
         <EmptyState
           icon={Layers}
-          title="No Academic Data Active"
-          description="You do not have any enrolled courses or timetable slots scheduled for this semester. Click below to load demo data or enroll in your first course."
-          actionLabel="Enroll in Courses"
+          title="Chưa có dữ liệu học tập"
+          description="Bạn chưa đăng ký môn học hoặc chưa có thời khóa biểu nào cho học kỳ này. Nhấn bên dưới để tải dữ liệu hoặc đăng ký môn học đầu tiên."
+          actionLabel="Đăng ký môn học"
           onAction={() => setViewState('normal')}
         />
       )}
@@ -144,37 +231,63 @@ export const DashboardPage: React.FC = () => {
           {/* Top Metric Stat Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
-              title="Semester GPA"
-              value="3.82"
-              subtitle="/ 4.00"
+              title="GPA Học kỳ"
+              value={gpaValue}
+              subtitle={gpaSubtitle}
               icon={Sparkles}
               iconColor="indigo"
-              progress={{ current: 3.82, total: 4.0, unit: 'GPA' }}
-              trend={{ value: '+0.07', positive: true, label: 'vs Spring 2026' }}
+              progress={
+                hasGradedCourses
+                  ? { current: semesterGpa.gpa, total: currentSemester?.targetGpa || 4.0, unit: 'GPA' }
+                  : currentSemester?.targetGpa
+                  ? { current: 0, total: currentSemester.targetGpa, unit: 'GPA' }
+                  : undefined
+              }
+              trend={
+                currentSemester?.targetGpa
+                  ? {
+                      value: `Mục tiêu: ${currentSemester.targetGpa.toFixed(2)}${
+                        hasGradedCourses ? ` · ${semesterGpa.earnedCredits} tín chỉ` : ''
+                      }`,
+                      positive: hasGradedCourses ? semesterGpa.gpa >= currentSemester.targetGpa : true,
+                    }
+                  : hasGradedCourses
+                  ? { value: `${semesterGpa.earnedCredits} tín chỉ đạt`, positive: true }
+                  : { value: 'Theo dõi thời gian thực', positive: true }
+              }
             />
             <StatCard
-              title="Enrolled Courses"
-              value={courses.length}
-              subtitle="12 Total Credits"
+              title="Môn học đăng ký"
+              value={semesterCourses.length}
+              subtitle={`${totalCredits} Tổng tín chỉ`}
               icon={BookOpen}
               iconColor="emerald"
-              trend={{ value: '100% on track', positive: true }}
+              trend={{
+                value: `${semesterCourses.filter((c) => c.status === 'completed').length} môn hoàn thành`,
+                positive: true,
+              }}
             />
             <StatCard
-              title="Active Deadlines"
-              value={assignments.filter((a) => a.status !== 'graded').length}
-              subtitle="1 High Priority"
+              title="Bài tập đang mở"
+              value={activeAssignments.length}
+              subtitle={`${urgentAssignmentsCount} Ưu tiên cao`}
               icon={CheckSquare}
               iconColor="amber"
-              trend={{ value: '2 Due this week', positive: false }}
+              trend={{
+                value: `${dueThisWeekCount} bài hạn tuần này`,
+                positive: dueThisWeekCount === 0,
+              }}
             />
             <StatCard
-              title="Study Focus"
-              value="28.5 hrs"
-              subtitle="This Week"
+              title="Thời gian học"
+              value={`${weeklyStudyStats.totalHours} giờ`}
+              subtitle="Tuần này"
               icon={Clock}
               iconColor="purple"
-              trend={{ value: '+18%', positive: true, label: 'streak: 5 days' }}
+              trend={{
+                value: `Chuỗi: ${studyStreak} ngày`,
+                positive: studyStreak > 0,
+              }}
             />
           </div>
 
@@ -188,21 +301,26 @@ export const DashboardPage: React.FC = () => {
                   <div className="space-y-0.5">
                     <CardTitle className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-brand-500" />
-                      <span>Today&apos;s Class Schedule</span>
+                      <span>Lịch học hôm nay</span>
                     </CardTitle>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Monday · 2 lectures scheduled
+                      {todayName} · {todaysClasses.length} tiết học theo lịch
                     </p>
                   </div>
                   <NavLink
                     to="/timetable"
                     className="text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 flex items-center gap-1"
                   >
-                    Full Timetable <ArrowRight className="h-3.5 w-3.5" />
+                    Toàn bộ TKB <ArrowRight className="h-3.5 w-3.5" />
                   </NavLink>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {todaysClasses.map((slot, index) => {
+                  {todaysClasses.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                      Không có tiết học nào trong ngày hôm nay.
+                    </div>
+                  ) : (
+                    todaysClasses.map((slot, index) => {
                     const course = courses.find((c) => c.id === slot.courseId);
                     return (
                       <div
@@ -224,7 +342,7 @@ export const DashboardPage: React.FC = () => {
                               </Badge>
                               {index === 0 && (
                                 <Badge variant="emerald" size="sm" dot>
-                                  Next Up
+                                  Tiết kế tiếp
                                 </Badge>
                               )}
                             </div>
@@ -241,11 +359,12 @@ export const DashboardPage: React.FC = () => {
                           <span className="text-xs font-semibold text-slate-900 dark:text-white font-mono">
                             {slot.startTime} - {slot.endTime}
                           </span>
-                          <span className="text-[10px] text-slate-400">Weekly Lecture</span>
+                          <span className="text-[10px] text-slate-400">Lý thuyết tuần</span>
                         </div>
                       </div>
                     );
-                  })}
+                  })
+                  )}
                 </CardContent>
               </Card>
 
@@ -255,14 +374,14 @@ export const DashboardPage: React.FC = () => {
                   <div className="space-y-0.5">
                     <CardTitle className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-purple-500" />
-                      <span>Weekly Focus Distribution</span>
+                      <span>Phân bổ thời gian học tuần</span>
                     </CardTitle>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Total 28.5 hours recorded across all enrolled courses
+                      Tổng cộng {weeklyStudyStats.totalHours} giờ ghi nhận trên tất cả môn học
                     </p>
                   </div>
                   <Badge variant="purple" size="sm">
-                    Target: 25h/week
+                    {weeklyStudyStats.completedSessions} phiên tập trung
                   </Badge>
                 </CardHeader>
                 <CardContent>
@@ -291,13 +410,13 @@ export const DashboardPage: React.FC = () => {
                             color: '#fff',
                             fontSize: '12px',
                           }}
-                          formatter={(value) => [`${value} hours`, 'Focus Time']}
+                          formatter={(value) => [`${value} giờ`, 'Thời gian tập trung']}
                         />
                         <Bar dataKey="hours" radius={[8, 8, 0, 0]}>
                           {weeklyStudyData.map((entry, index) => (
                             <Cell
                               key={`cell-${index}`}
-                              fill={entry.day === 'Sat' ? '#4f46e5' : '#818cf8'}
+                              fill={entry.day === 'T7' ? '#4f46e5' : '#818cf8'}
                             />
                           ))}
                         </Bar>
@@ -320,7 +439,7 @@ export const DashboardPage: React.FC = () => {
                       </span>
                       <div>
                         <h4 className="text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider">
-                          Next Exam Alert
+                          Kỳ thi sắp tới
                         </h4>
                         <p className="text-xs text-slate-600 dark:text-slate-400">
                           {nextExam.countdownLabel}
@@ -337,11 +456,11 @@ export const DashboardPage: React.FC = () => {
                       {nextExam.courseCode ? `${nextExam.courseCode} · ` : ''}{nextExam.title}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {formatDate(nextExam.examDate)} · {nextExam.location} {nextExam.seatNumber ? `(${nextExam.seatNumber})` : ''}
+                      {formatDate(nextExam.examDate)} · {nextExam.location} {nextExam.seatNumber ? `(SBD: ${nextExam.seatNumber})` : ''}
                     </p>
                     {nextExam.weight !== undefined && (
                       <p className="text-xs text-slate-600 dark:text-slate-300 font-medium pt-1">
-                        Weight: {nextExam.weight}% of total course grade
+                        Trọng số: {nextExam.weight}% điểm học phần
                       </p>
                     )}
                   </div>
@@ -350,7 +469,7 @@ export const DashboardPage: React.FC = () => {
                     to="/exams"
                     className="mt-3.5 block text-center rounded-xl bg-amber-600 py-2 text-xs font-semibold text-white shadow-xs hover:bg-amber-700 transition-colors"
                   >
-                    View Revision Checklist →
+                    Xem danh sách ôn thi →
                   </NavLink>
                 </div>
               )}
@@ -360,19 +479,19 @@ export const DashboardPage: React.FC = () => {
                 <CardHeader className="flex flex-row items-center justify-between pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <CheckSquare className="h-4 w-4 text-brand-500" />
-                    <span>Upcoming Deadlines</span>
+                    <span>Hạn nộp bài tập sắp tới</span>
                   </CardTitle>
                   <NavLink
                     to="/assignments"
                     className="text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400"
                   >
-                    View All
+                    Xem tất cả
                   </NavLink>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {upcomingDeadlines.length === 0 ? (
                     <div className="p-4 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
-                      No upcoming deadlines. All caught up!
+                      Không có bài tập nào sắp tới. Bạn đã hoàn thành tất cả!
                     </div>
                   ) : (
                     upcomingDeadlines.map((a) => (
@@ -400,7 +519,7 @@ export const DashboardPage: React.FC = () => {
                                 : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                             }`}
                           >
-                            {a.priority.toUpperCase()}
+                            {a.priority === 'urgent' ? 'KHẨN CẤP' : a.priority === 'high' ? 'ƯU TIÊN CAO' : a.priority === 'medium' ? 'TRUNG BÌNH' : 'THẤP'}
                           </span>
                         </div>
 
@@ -413,7 +532,7 @@ export const DashboardPage: React.FC = () => {
                             {a.relativeLabel}
                           </span>
                           {a.weight !== undefined && (
-                            <span className="font-mono">{a.weight}% Weight</span>
+                            <span className="font-mono">Trọng số {a.weight}%</span>
                           )}
                         </div>
                       </div>

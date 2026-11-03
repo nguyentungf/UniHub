@@ -20,46 +20,46 @@ export const StudyStatsHeader: React.FC<StudyStatsHeaderProps> = ({
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard
-        title="Today's Focus Time"
+        title="Thời gian tập trung hôm nay"
         value={formatDurationMinutes(dailyStats.totalMinutes)}
-        subtitle={`${dailyStats.sessionCount} sessions today`}
+        subtitle={`${dailyStats.sessionCount} phiên hôm nay`}
         icon={Clock}
         iconColor="indigo"
         progress={{
           current: dailyStats.totalMinutes,
           total: 120, // 2 hour daily goal
-          unit: 'min',
+          unit: 'phút',
         }}
       />
 
       <StatCard
-        title="Focus Streak"
-        value={`${streakDays} Day${streakDays === 1 ? '' : 's'}`}
-        subtitle={streakDays > 0 ? 'Consecutive study habit!' : 'Start your streak today'}
+        title="Chuỗi ngày học liên tục"
+        value={`${streakDays} Ngày`}
+        subtitle={streakDays > 0 ? 'Thói quen học tập bền bỉ!' : 'Bắt đầu chuỗi học hôm nay'}
         icon={Flame}
         iconColor="amber"
       />
 
       <StatCard
-        title="Weekly Focus"
-        value={`${weeklyStats.totalHours} hrs`}
-        subtitle={`Goal: ${weeklyStats.targetMinutes / 60} hrs / week`}
+        title="Tập trung trong tuần"
+        value={`${weeklyStats.totalHours} giờ`}
+        subtitle={`Mục tiêu: ${weeklyStats.targetMinutes / 60} giờ / tuần`}
         icon={Calendar}
         iconColor="emerald"
         trend={{
           value: `${weeklyStats.percentOfTarget}%`,
           positive: weeklyStats.percentOfTarget >= 100,
-          label: 'of target',
+          label: 'mục tiêu',
         }}
       />
 
       <StatCard
-        title="Total Sessions"
+        title="Tổng số phiên học"
         value={totalSessionsCount}
         subtitle={
           dailyStats.averageFocusRating > 0
-            ? `Avg focus rating: ${dailyStats.averageFocusRating}/5 ★`
-            : 'Tracked deep work blocks'
+            ? `Đánh giá TB: ${dailyStats.averageFocusRating}/5 ★`
+            : 'Khoảng thời gian tập trung sâu'
         }
         icon={CheckCircle2}
         iconColor="purple"

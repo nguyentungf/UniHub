@@ -14,6 +14,46 @@ interface SlotDetailModalProps {
   onDelete: (slot: TimetableSlot) => void;
 }
 
+const getDayNameVi = (day: number): string => {
+  const map: Record<number, string> = {
+    1: 'Thứ Hai',
+    2: 'Thứ Ba',
+    3: 'Thứ Tư',
+    4: 'Thứ Năm',
+    5: 'Thứ Sáu',
+    6: 'Thứ Bảy',
+    7: 'Chủ Nhật',
+  };
+  return map[day] || `Thứ ${day}`;
+};
+
+const getSlotTypeVi = (type: string): string => {
+  const map: Record<string, string> = {
+    lecture: 'Lý thuyết',
+    lab: 'Thực hành',
+    tutorial: 'Bài tập',
+    seminar: 'Chuyên đề',
+    exam: 'Kiểm tra',
+  };
+  return map[type] || type;
+};
+
+const getRecurrenceVi = (slot: TimetableSlot, course?: Course): string => {
+  if (slot.recurrence === 'course_weeks') {
+    const weeks = slot.customWeeks || course?.studyWeeks || '2-19';
+    return `Theo tuần môn học (${weeks})`;
+  }
+  if (slot.recurrence === 'custom') {
+    return `Tùy chỉnh: Tuần ${slot.customWeeks || 'Đã chọn'}`;
+  }
+  const map: Record<string, string> = {
+    weekly: 'Hàng tuần',
+    biweekly_odd: 'Tuần lẻ',
+    biweekly_even: 'Tuần chẵn',
+  };
+  return map[slot.recurrence] || slot.recurrence;
+};
+
 export const SlotDetailModal: React.FC<SlotDetailModalProps> = ({
   slot,
   course,
@@ -28,8 +68,8 @@ export const SlotDetailModal: React.FC<SlotDetailModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Class Session Details"
-      description={`${getDayName(slot.dayOfWeek)} · ${slot.startTime} to ${slot.endTime}`}
+      title="Chi tiết tiết học"
+      description={`${getDayNameVi(slot.dayOfWeek)} · ${slot.startTime} đến ${slot.endTime}`}
       size="md"
     >
       <div className="space-y-5">
@@ -40,12 +80,12 @@ export const SlotDetailModal: React.FC<SlotDetailModalProps> = ({
         >
           <div>
             <span className="font-mono text-xs font-bold uppercase tracking-wider opacity-80 block">
-              {course?.code || 'Course'}
+              {course?.code || 'Môn học'}
             </span>
-            <h3 className="text-lg font-black leading-snug">{course?.name || 'Class Session'}</h3>
+            <h3 className="text-lg font-black leading-snug">{course?.name || 'Tiết học'}</h3>
           </div>
-          <Badge variant="outline" size="sm" className="bg-black/25 text-white border-white/20 capitalize">
-            {slot.type}
+          <Badge variant="outline" size="sm" className="bg-black/25 text-white border-white/20">
+            {getSlotTypeVi(slot.type)}
           </Badge>
         </div>
 
@@ -55,10 +95,10 @@ export const SlotDetailModal: React.FC<SlotDetailModalProps> = ({
             <Clock className="h-4 w-4 text-brand-500 shrink-0" />
             <div>
               <span className="font-semibold block text-slate-800 dark:text-slate-200">
-                {getDayName(slot.dayOfWeek)}, {slot.startTime} - {slot.endTime}
+                {getDayNameVi(slot.dayOfWeek)}, {slot.startTime} - {slot.endTime}
               </span>
-              <span className="text-[11px] text-slate-400 capitalize">
-                Recurrence: {slot.recurrence.replace('_', ' ')}
+              <span className="text-[11px] text-slate-400">
+                Tần suất: {getRecurrenceVi(slot, course)}
               </span>
             </div>
           </div>
@@ -69,7 +109,7 @@ export const SlotDetailModal: React.FC<SlotDetailModalProps> = ({
               <span className="font-semibold block text-slate-800 dark:text-slate-200">
                 {slot.room ? `${slot.room} · ` : ''}{slot.location}
               </span>
-              <span className="text-[11px] text-slate-400">Classroom & Building</span>
+              <span className="text-[11px] text-slate-400">Phòng học & Tòa nhà</span>
             </div>
           </div>
 
@@ -80,7 +120,7 @@ export const SlotDetailModal: React.FC<SlotDetailModalProps> = ({
                 <span className="font-semibold block text-slate-800 dark:text-slate-200">
                   {slot.instructor || course?.instructor}
                 </span>
-                <span className="text-[11px] text-slate-400">Lecturer / Instructor</span>
+                <span className="text-[11px] text-slate-400">Mã lớp</span>
               </div>
             </div>
           )}
@@ -91,7 +131,7 @@ export const SlotDetailModal: React.FC<SlotDetailModalProps> = ({
           {course ? (
             <NavLink to={`/courses/${course.id}`} onClick={onClose}>
               <Button size="xs" variant="ghost" rightIcon={<ExternalLink className="h-3.5 w-3.5" />}>
-                Course Cockpit
+                Trang môn học
               </Button>
             </NavLink>
           ) : (
@@ -108,7 +148,7 @@ export const SlotDetailModal: React.FC<SlotDetailModalProps> = ({
                 onEdit(slot);
               }}
             >
-              Edit
+              Sửa
             </Button>
             <Button
               size="xs"
@@ -119,7 +159,7 @@ export const SlotDetailModal: React.FC<SlotDetailModalProps> = ({
                 onDelete(slot);
               }}
             >
-              Delete
+              Xóa
             </Button>
           </div>
         </div>

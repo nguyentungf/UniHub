@@ -4,6 +4,8 @@ import {
   calculateLessonProgress,
   calculateAttendanceStats,
   calculateCourseHealth,
+  parseStudyWeeks,
+  formatStudyWeeksSummary,
 } from './courseProgress.ts';
 import type { Course } from '../../../types/index.ts';
 
@@ -142,6 +144,42 @@ describe('Course Progress Business Logic', () => {
       assert.equal(health.badgeVariant, 'emerald');
       assert.equal(health.label, 'On Track');
       assert.ok(health.healthScore >= 80);
+    });
+  });
+
+  describe('parseStudyWeeks & formatStudyWeeksSummary', () => {
+    it('correctly parses single range e.g. "2-19"', () => {
+      const weeks = parseStudyWeeks('2-19');
+      assert.equal(weeks.length, 18);
+      assert.equal(weeks[0], 2);
+      assert.equal(weeks[weeks.length - 1], 19);
+      assert.equal(formatStudyWeeksSummary('2-19'), '18 buổi học');
+    });
+
+    it('correctly parses multiple discontinuous ranges e.g. "2-9, 11-18"', () => {
+      const weeks = parseStudyWeeks('2-9, 11-18');
+      assert.equal(weeks.length, 16);
+      assert.equal(weeks[0], 2);
+      assert.equal(weeks[7], 9);
+      assert.equal(weeks[8], 11);
+      assert.equal(weeks[15], 18);
+      assert.equal(formatStudyWeeksSummary('2-9, 11-18'), '16 buổi học');
+    });
+
+    it('handles semicolon separator and spaces e.g. "2-9; 11-18"', () => {
+      const weeks = parseStudyWeeks('2-9; 11-18');
+      assert.equal(weeks.length, 16);
+    });
+
+    it('handles discrete numbers mixed with ranges e.g. "1, 3, 5-8"', () => {
+      const weeks = parseStudyWeeks('1, 3, 5-8');
+      assert.deepEqual(weeks, [1, 3, 5, 6, 7, 8]);
+    });
+
+    it('returns empty array for blank or invalid inputs', () => {
+      assert.deepEqual(parseStudyWeeks(''), []);
+      assert.deepEqual(parseStudyWeeks('   '), []);
+      assert.equal(formatStudyWeeksSummary(''), '');
     });
   });
 });

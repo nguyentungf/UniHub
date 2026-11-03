@@ -182,7 +182,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
         durationMinutes: completedSessionData.durationMinutes,
         sessionType: 'pomodoro',
         focusRating: sessionRating,
-        notes: sessionNotes.trim() || 'Completed focused Pomodoro interval',
+        notes: sessionNotes.trim() || 'Hoàn thành phiên Pomodoro tập trung',
       };
 
       await onRecordSession(newSession);
@@ -222,7 +222,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                 : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             }`}
           >
-            Pomodoro ({settings.workDuration}m)
+            Pomodoro ({settings.workDuration}p)
           </button>
           <button
             onClick={() => handleSwitchMode('shortBreak')}
@@ -232,7 +232,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                 : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             }`}
           >
-            Short Break ({settings.shortBreak}m)
+            Nghỉ ngắn ({settings.shortBreak}p)
           </button>
           <button
             onClick={() => handleSwitchMode('longBreak')}
@@ -242,7 +242,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                 : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             }`}
           >
-            Long Break ({settings.longBreak}m)
+            Nghỉ dài ({settings.longBreak}p)
           </button>
         </div>
 
@@ -251,14 +251,14 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            title={soundEnabled ? 'Chime sound enabled' : 'Chime sound muted'}
+            title={soundEnabled ? 'Bật chuông thông báo' : 'Tắt chuông thông báo'}
           >
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </button>
           <button
             onClick={() => setIsSettingsOpen(true)}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            title="Timer Settings"
+            title="Cài đặt đồng hồ"
           >
             <Settings className="h-4 w-4" />
           </button>
@@ -304,11 +304,11 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
           <span className="mt-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
             {mode === 'work'
               ? status === 'running'
-                ? 'Deep Focus Interval'
-                : 'Focus Ready'
+                ? 'Phiên tập trung sâu'
+                : 'Sẵn sàng tập trung'
               : mode === 'shortBreak'
-              ? 'Quick Recharge Break'
-              : 'Long Rest & Reflect'}
+              ? 'Nghỉ ngơi ngắn'
+              : 'Nghỉ dài & Hồi phục'}
           </span>
 
           {selectedCourse && (
@@ -321,7 +321,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
           )}
           {selectedCourseId === 'general' && (
             <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200 shadow-xs">
-              <BookOpen className="h-3 w-3" /> General Study
+              <BookOpen className="h-3 w-3" /> Tự học chung
             </span>
           )}
         </div>
@@ -337,7 +337,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             onClick={handlePause}
             className="px-8 text-base font-bold shadow-md"
           >
-            Pause
+            Tạm dừng
           </Button>
         ) : status === 'paused' ? (
           <Button
@@ -347,7 +347,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             onClick={handleResume}
             className="px-8 text-base font-bold shadow-md"
           >
-            Resume
+            Tiếp tục
           </Button>
         ) : (
           <Button
@@ -357,7 +357,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             onClick={handleStart}
             className="px-8 text-base font-bold shadow-md"
           >
-            Start Focus
+            Bắt đầu
           </Button>
         )}
 
@@ -368,7 +368,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
           onClick={handleReset}
           disabled={status === 'idle'}
         >
-          Reset
+          Đặt lại
         </Button>
 
         <Button
@@ -377,19 +377,19 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
           leftIcon={<SkipForward className="h-4 w-4" />}
           onClick={handleSkip}
         >
-          Skip
+          Bỏ qua
         </Button>
       </div>
 
       {/* Course Association Selector */}
       <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800/80 w-full max-w-sm flex items-center justify-center gap-3">
-        <span className="text-xs font-semibold text-slate-500">Studying For:</span>
+        <span className="text-xs font-semibold text-slate-500">Môn học:</span>
         <select
           value={selectedCourseId}
           onChange={(e) => setSelectedCourseId(e.target.value)}
           className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 shadow-xs cursor-pointer focus:ring-2 focus:ring-brand-500"
         >
-          <option value="general">General Study / Revision</option>
+          <option value="general">Tự học chung / Ôn tập</option>
           {courses.map((c) => (
             <option key={c.id} value={c.id}>
               {c.code} · {c.name}
@@ -408,10 +408,10 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  Pomodoro Completed!
+                  Hoàn thành phiên Pomodoro!
                 </h3>
                 <p className="text-xs text-slate-500">
-                  {completedSessionData?.durationMinutes} minutes of focused study logged
+                  Đã ghi nhận {completedSessionData?.durationMinutes} phút tập trung học tập
                 </p>
               </div>
             </div>
@@ -419,7 +419,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             <div className="space-y-3 pt-2">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  How was your focus depth?
+                  Mức độ tập trung của bạn?
                 </label>
                 <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -440,25 +440,25 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                   ))}
                   <span className="text-xs font-semibold text-slate-500 ml-2">
                     {sessionRating === 5
-                      ? 'Deep Flow'
+                      ? 'Tập trung tuyệt đối'
                       : sessionRating === 4
-                      ? 'High Focus'
+                      ? 'Tập trung cao'
                       : sessionRating === 3
-                      ? 'Moderate'
+                      ? 'Bình thường'
                       : sessionRating === 2
-                      ? 'Slightly Distracted'
-                      : 'Very Distracted'}
+                      ? 'Hơi xao nhãng'
+                      : 'Rất xao nhãng'}
                   </span>
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Session Notes (Optional)
+                  Ghi chú phiên học (Tùy chọn)
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Mastered Dijkstra algorithm, read pages 45-60"
+                  placeholder="Ví dụ: Nắm vững thuật toán Dijkstra, đọc trang 45-60"
                   value={sessionNotes}
                   onChange={(e) => setSessionNotes(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 shadow-xs focus:ring-2 focus:ring-brand-500"
@@ -475,14 +475,14 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                   setCompletedSessionData(null);
                 }}
               >
-                Skip Record
+                Bỏ qua
               </Button>
               <Button
                 size="sm"
                 onClick={handleSaveCompletedSession}
                 isLoading={isSavingSession}
               >
-                Save Record
+                Lưu phiên học
               </Button>
             </div>
           </div>

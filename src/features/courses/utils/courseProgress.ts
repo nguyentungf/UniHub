@@ -152,3 +152,44 @@ export function calculateCourseHealth(course: Course): {
     badgeVariant: 'rose',
   };
 }
+
+/**
+ * Parses study week expressions like "2-19" or "2-9, 11-18" or "2-9; 11-18" or "1, 3, 5-10"
+ * Returns array of sorted unique week numbers.
+ */
+export function parseStudyWeeks(input: string): number[] {
+  if (!input || !input.trim()) return [];
+  const weeks = new Set<number>();
+  const tokens = input.split(/[,;\s]+/).map((t) => t.trim()).filter(Boolean);
+
+  for (const token of tokens) {
+    if (token.includes('-')) {
+      const parts = token.split('-');
+      if (parts.length === 2) {
+        const start = parseInt(parts[0], 10);
+        const end = parseInt(parts[1], 10);
+        if (!isNaN(start) && !isNaN(end) && start > 0 && end >= start) {
+          for (let w = start; w <= end; w++) {
+            weeks.add(w);
+          }
+        }
+      }
+    } else {
+      const num = parseInt(token, 10);
+      if (!isNaN(num) && num > 0) {
+        weeks.add(num);
+      }
+    }
+  }
+
+  return Array.from(weeks).sort((a, b) => a - b);
+}
+
+/**
+ * Returns a human-friendly summary of the parsed study weeks.
+ */
+export function formatStudyWeeksSummary(input: string): string {
+  const weeks = parseStudyWeeks(input);
+  if (weeks.length === 0) return '';
+  return `${weeks.length} buổi học`;
+}

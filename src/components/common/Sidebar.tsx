@@ -42,15 +42,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const upcomingExamsCount = exams.filter((e) => !e.status || e.status === 'upcoming').length;
 
   const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Courses', path: '/courses', icon: BookOpen, badge: courses.length > 0 ? String(courses.length) : undefined },
-    { name: 'Timetable', path: '/timetable', icon: Calendar },
-    { name: 'Assignments', path: '/assignments', icon: CheckSquare, badge: pendingAssignmentsCount > 0 ? String(pendingAssignmentsCount) : undefined },
-    { name: 'Exams', path: '/exams', icon: GraduationCap, badge: upcomingExamsCount > 0 ? String(upcomingExamsCount) : undefined },
-    { name: 'GPA Calculator', path: '/gpa', icon: Sparkles },
-    { name: 'Study Tracker', path: '/study', icon: Clock },
-    { name: 'Notes', path: '/notes', icon: FileText },
-    { name: 'Settings', path: '/settings', icon: Settings },
+    { name: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Môn học', path: '/courses', icon: BookOpen, badge: courses.length > 0 ? String(courses.length) : undefined },
+    { name: 'Thời khóa biểu', path: '/timetable', icon: Calendar },
+    { name: 'Bài tập', path: '/assignments', icon: CheckSquare, badge: pendingAssignmentsCount > 0 ? String(pendingAssignmentsCount) : undefined },
+    { name: 'Lịch thi', path: '/exams', icon: GraduationCap, badge: upcomingExamsCount > 0 ? String(upcomingExamsCount) : undefined },
+    { name: 'Tính điểm & GPA', path: '/gpa', icon: Sparkles },
+    { name: 'Đồng hồ Pomodoro', path: '/study', icon: Clock },
+    { name: 'Ghi chú', path: '/notes', icon: FileText },
+    { name: 'Cài đặt', path: '/settings', icon: Settings },
   ];
 
   return (
@@ -72,14 +72,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       >
         {/* Header / Brand */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-200/60 dark:border-slate-800/60">
+        <div
+          className={cn(
+            'flex h-16 items-center border-b border-slate-200/60 dark:border-slate-800/60 transition-all duration-300',
+            isCollapsed ? 'justify-between px-2' : 'justify-between px-4'
+          )}
+        >
           <NavLink
             to="/dashboard"
             onClick={onCloseMobile}
-            className="flex items-center gap-3 overflow-hidden select-none"
+            className={cn(
+              'flex shrink-0 items-center select-none transition-all duration-300',
+              isCollapsed ? 'gap-0' : 'gap-3 overflow-hidden'
+            )}
+            title={isCollapsed ? 'UniHub Dashboard' : undefined}
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-indigo-700 text-white shadow-md shadow-brand-500/25">
-              <GraduationCap className="h-5 w-5" />
+            <div
+              className={cn(
+                'flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-indigo-700 text-white shadow-md shadow-brand-500/25 transition-all duration-300',
+                isCollapsed ? 'h-8 w-8' : 'h-10 w-10'
+              )}
+            >
+              <GraduationCap
+                className={cn(
+                  'transition-all duration-300',
+                  isCollapsed ? 'h-4 w-4' : 'h-5 w-5'
+                )}
+              />
             </div>
             {!isCollapsed && (
               <div className="flex flex-col">
@@ -95,10 +114,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             onClick={onToggleCollapse}
-            className="hidden lg:flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
+            className={cn(
+              'hidden lg:flex shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-all duration-200',
+              isCollapsed ? 'h-6 w-6' : 'h-7 w-7'
+            )}
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
         </div>
 
@@ -169,10 +192,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </span>
               <div>
                 <p className="text-xs font-semibold text-slate-900 dark:text-white">
-                  Study Focus
+                  Tập trung học
                 </p>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                  25 min Pomodoro
+                  Pomodoro 25 phút
                 </p>
               </div>
             </div>
@@ -181,7 +204,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={onCloseMobile}
               className="mt-2.5 block text-center rounded-xl bg-brand-600 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-brand-700 active:scale-98 transition-all"
             >
-              Start Session
+              Bắt đầu phiên
             </NavLink>
           </div>
         )}
@@ -193,14 +216,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               'flex items-center rounded-xl bg-slate-50 px-2.5 py-2 text-[11px] text-slate-500 dark:bg-slate-800/50 dark:text-slate-400',
               isCollapsed ? 'justify-center' : 'justify-between'
             )}
-            title="UniHub is 100% Client-Side and fully offline capable via IndexedDB."
+            title="UniHub chạy 100% trên trình duyệt và hoạt động ngoại tuyến hoàn chỉnh qua IndexedDB."
           >
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
-              {!isCollapsed && <span className="font-medium">Offline Ready</span>}
+              {!isCollapsed && <span className="font-medium">Chế độ ngoại tuyến</span>}
             </div>
             {!isCollapsed && <ShieldCheck className="h-3.5 w-3.5 text-slate-400" />}
           </div>

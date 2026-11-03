@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Exam, ExamType, ExamStatus } from '@/types';
 import { examRepository, dataAccessLayer } from '@/lib/storage/dal';
+import { getDatabaseMode } from '@/lib/storage/db';
 import { SEED_DATA } from '@/constants/seedData';
 import { ExamSortOption } from '@/features/exams/utils/examLogic';
 
@@ -43,7 +44,7 @@ const INITIAL_COMPLETED_TOPICS: Record<string, boolean> = {
 };
 
 export const useExamStore = create<ExamState>((set, get) => ({
-  exams: SEED_DATA.data.exams,
+  exams: typeof window !== 'undefined' && getDatabaseMode() === 'real' ? [] : SEED_DATA.data.exams,
   isLoading: false,
   error: null,
   completedTopics: INITIAL_COMPLETED_TOPICS,
@@ -78,7 +79,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
       await dataAccessLayer.initializeSeedDataIfNeeded();
       const fetched = await examRepository.getAll();
       set({
-        exams: fetched.length > 0 ? fetched : SEED_DATA.data.exams,
+        exams: fetched,
         isLoading: false,
       });
     } catch (err: unknown) {

@@ -154,26 +154,26 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Note Title..."
+              placeholder="Tiêu đề ghi chú..."
               className="w-full text-xl font-black text-slate-900 dark:text-white bg-transparent border-none p-0 focus:outline-hidden focus:ring-0 placeholder:text-slate-300 dark:placeholder:text-slate-600"
             />
             <div className="flex items-center gap-3 text-xs text-slate-400">
-              <span>Updated {formatDateTime(note.updatedAt)}</span>
+              <span>Cập nhật {formatDateTime(note.updatedAt)}</span>
 
               {/* Autosave Indicator */}
               <div className="flex items-center gap-1.5 font-medium">
                 {saveStatus === 'saved' && (
                   <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                    <Check className="h-3 w-3" /> Saved
+                    <Check className="h-3 w-3" /> Đã lưu
                   </span>
                 )}
                 {saveStatus === 'saving' && (
                   <span className="flex items-center gap-1 text-brand-600 dark:text-brand-400 animate-pulse">
-                    <Clock className="h-3 w-3" /> Saving to IndexedDB...
+                    <Clock className="h-3 w-3" /> Đang lưu vào cơ sở dữ liệu...
                   </span>
                 )}
                 {saveStatus === 'dirty' && (
-                  <span className="text-amber-500">Unsaved edits...</span>
+                  <span className="text-amber-500">Chưa lưu thay đổi...</span>
                 )}
               </div>
             </div>
@@ -190,7 +190,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
                     ? 'bg-white shadow-xs text-brand-600 dark:bg-slate-700 dark:text-white'
                     : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                 }`}
-                title="Edit Markdown"
+                title="Chế độ chỉnh sửa Markdown"
               >
                 <Edit3 className="h-3.5 w-3.5" />
               </button>
@@ -201,7 +201,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
                     ? 'bg-white shadow-xs text-brand-600 dark:bg-slate-700 dark:text-white'
                     : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                 }`}
-                title="Split View (Editor + Live Preview)"
+                title="Chế độ chia đôi màn hình (Soạn thảo + Xem trực tiếp)"
               >
                 <Columns className="h-3.5 w-3.5" />
               </button>
@@ -212,7 +212,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
                     ? 'bg-white shadow-xs text-brand-600 dark:bg-slate-700 dark:text-white'
                     : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                 }`}
-                title="Preview Rendered Markdown"
+                title="Xem trước Markdown"
               >
                 <Eye className="h-3.5 w-3.5" />
               </button>
@@ -226,7 +226,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
                   ? 'border-amber-300 bg-amber-50 text-amber-600 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
                   : 'border-slate-200 text-slate-400 hover:text-slate-700 dark:border-slate-800 dark:hover:text-slate-200'
               }`}
-              title={note.isPinned ? 'Unpin note' : 'Pin note to top'}
+              title={note.isPinned ? 'Bỏ ghim ghi chú' : 'Ghim ghi chú lên đầu'}
             >
               <Pin className="h-4 w-4 fill-current" />
             </button>
@@ -235,7 +235,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
             <button
               onClick={() => setIsDeleteDialogOpen(true)}
               className="p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 dark:border-slate-800 dark:hover:text-rose-400 transition-colors"
-              title="Delete Note"
+              title="Xóa ghi chú"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -246,13 +246,13 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
         <div className="flex flex-wrap items-center gap-3 py-1">
           {/* Course Association Selector */}
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-slate-400">Course:</span>
+            <span className="text-xs font-semibold text-slate-400">Môn học:</span>
             <select
               value={courseId || ''}
               onChange={(e) => setCourseId(e.target.value || null)}
               className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 shadow-xs cursor-pointer focus:ring-2 focus:ring-brand-500"
             >
-              <option value="">General (No Course)</option>
+              <option value="">Tự do (Không gắn môn)</option>
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.code} · {c.name}
@@ -290,7 +290,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
             <div className="flex items-center gap-1">
               <input
                 type="text"
-                placeholder="+ tag"
+                placeholder="+ thẻ"
                 value={newTagInput}
                 onChange={(e) => setNewTagInput(e.target.value)}
                 onKeyDown={handleAddTag}
@@ -306,74 +306,74 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
             <button
               onClick={() => insertFormatting('**', '**')}
               className="p-1.5 rounded hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 transition-colors"
-              title="Bold (**text**)"
+              title="In đậm (**văn bản**)"
             >
               <Bold className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => insertFormatting('*', '*')}
               className="p-1.5 rounded hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 transition-colors"
-              title="Italic (*text*)"
+              title="In nghiêng (*văn bản*)"
             >
               <Italic className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => insertFormatting('# ')}
               className="p-1.5 rounded hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 transition-colors"
-              title="Heading 1 (#)"
+              title="Tiêu đề 1 (#)"
             >
               <Heading1 className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => insertFormatting('## ')}
               className="p-1.5 rounded hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 transition-colors"
-              title="Heading 2 (##)"
+              title="Tiêu đề 2 (##)"
             >
               <Heading2 className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => insertFormatting('`', '`')}
               className="p-1.5 rounded hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 transition-colors"
-              title="Inline Code (`code`)"
+              title="Mã nội dòng (`code`)"
             >
               <Code className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => insertFormatting('```ts\n', '\n```')}
               className="px-1.5 py-0.5 rounded text-[11px] font-mono hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 transition-colors"
-              title="Code Block (```)"
+              title="Khối mã (```)"
             >
               &lt;/&gt;
             </button>
             <button
               onClick={() => insertFormatting('- ')}
               className="p-1.5 rounded hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 transition-colors"
-              title="Bullet List (- item)"
+              title="Danh sách dấu đầu dòng (- mục)"
             >
               <List className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => insertFormatting('- [ ] ')}
               className="p-1.5 rounded hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 transition-colors"
-              title="Task Item (- [ ] item)"
+              title="Danh sách công việc (- [ ] việc)"
             >
               <CheckSquare className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => insertFormatting('> ')}
               className="p-1.5 rounded hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 transition-colors"
-              title="Blockquote (> quote)"
+              title="Trích dẫn (> trích dẫn)"
             >
               <Quote className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() =>
                 insertFormatting(
-                  '\n| Column 1 | Column 2 |\n| :--- | :--- |\n| Row 1 | Data 1 |\n| Row 2 | Data 2 |\n'
+                  '\n| Cột 1 | Cột 2 |\n| :--- | :--- |\n| Dòng 1 | Dữ liệu 1 |\n| Dòng 2 | Dữ liệu 2 |\n'
                 )
               }
               className="p-1.5 rounded hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 transition-colors"
-              title="Table Template"
+              title="Chèn bảng mẫu"
             >
               <TableIcon className="h-3.5 w-3.5" />
             </button>
@@ -388,7 +388,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
               rows={20}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Write your study notes in markdown..."
+              placeholder="Viết ghi chú học tập bằng Markdown..."
               className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-4 font-mono text-xs leading-relaxed text-slate-800 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-brand-500 shadow-inner resize-y"
             />
           )}
@@ -406,7 +406,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
                 rows={20}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your study notes in markdown..."
+                placeholder="Viết ghi chú học tập bằng Markdown..."
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-4 font-mono text-xs leading-relaxed text-slate-800 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-brand-500 shadow-inner resize-y"
               />
               <div className="min-h-[420px] max-h-[520px] overflow-y-auto p-4 rounded-2xl border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-950 shadow-inner">
@@ -420,14 +420,14 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
       {/* Note Footer: Metrics */}
       <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
         <div className="flex items-center gap-3">
-          <span>{metrics.wordCount} words</span>
+          <span>{metrics.wordCount} từ</span>
           <span>·</span>
-          <span>{metrics.characterCount} characters</span>
+          <span>{metrics.characterCount} ký tự</span>
           <span>·</span>
-          <span>~{metrics.estimatedReadingTimeMinutes} min read</span>
+          <span>~{metrics.estimatedReadingTimeMinutes} phút đọc</span>
         </div>
         <div>
-          <span>Press Enter or comma to create tags</span>
+          <span>Nhấn Enter hoặc dấu phẩy để tạo thẻ</span>
         </div>
       </div>
 
@@ -436,9 +436,9 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}
-        title="Delete Study Note"
-        description={`Are you sure you want to delete "${note.title}"? This note will be removed from your offline IndexedDB vault.`}
-        confirmText="Delete Note"
+        title="Xóa ghi chú học tập"
+        description={`Bạn có chắc chắn muốn xóa "${note.title}"? Ghi chú này sẽ bị xóa vĩnh viễn khỏi kho lưu trữ dữ liệu.`}
+        confirmText="Xóa ghi chú"
         variant="danger"
         isLoading={isDeleting}
       />

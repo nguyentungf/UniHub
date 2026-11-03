@@ -92,11 +92,11 @@ export const CoursesPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Course Catalog"
-        subtitle="Manage enrolled courses, syllabi, grading component weights, and lesson progress"
+        title="Danh mục môn học"
+        subtitle="Quản lý các môn học đã đăng ký, đề cương, trọng số điểm và tiến độ bài học"
         badge={
           <Badge variant="brand" size="md">
-            {courses.length} Total Courses
+            {courses.length} Môn học
           </Badge>
         }
         actions={
@@ -105,7 +105,7 @@ export const CoursesPage: React.FC = () => {
             leftIcon={<Plus className="h-4 w-4" />}
             onClick={() => setIsAddModalOpen(true)}
           >
-            Add New Course
+            Thêm môn học
           </Button>
         }
       />
@@ -117,7 +117,7 @@ export const CoursesPage: React.FC = () => {
             onClick={clearError}
             className="text-xs font-semibold underline hover:text-rose-900 dark:hover:text-white"
           >
-            Dismiss
+            Bỏ qua
           </button>
         </div>
       )}
@@ -125,30 +125,30 @@ export const CoursesPage: React.FC = () => {
       {/* Top Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Enrolled Courses"
+          title="Môn đang học"
           value={courses.filter((c) => c.status === 'enrolled').length}
-          subtitle="Active Courses"
+          subtitle="Học phần kích hoạt"
           icon={BookOpen}
           iconColor="indigo"
         />
         <StatCard
-          title="Total Credits"
+          title="Tổng tín chỉ"
           value={totalCredits}
-          subtitle="Enrolled Credits"
+          subtitle="Tín chỉ đăng ký"
           icon={GraduationCap}
           iconColor="emerald"
         />
         <StatCard
-          title="Average Attendance"
+          title="Tỷ lệ chuyên cần"
           value={`${avgAttendance}%`}
-          subtitle={avgAttendance >= 80 ? 'Good Standing' : 'At Risk (<80%)'}
+          subtitle={avgAttendance >= 80 ? 'Đạt chuẩn điểm danh' : 'Nguy cơ cấm thi (<80%)'}
           icon={CalendarCheck}
           iconColor={avgAttendance >= 80 ? 'emerald' : 'rose'}
         />
         <StatCard
-          title="Lesson Completion"
+          title="Tiến độ bài học"
           value={`${avgLessonProgress}%`}
-          subtitle="Syllabus Progress"
+          subtitle="Tiến độ đề cương"
           icon={Sparkles}
           iconColor="purple"
         />
@@ -166,7 +166,7 @@ export const CoursesPage: React.FC = () => {
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
             }`}
           >
-            All Semesters
+            Tất cả học kỳ
           </button>
           {semesters.map((sem) => (
             <button
@@ -186,24 +186,28 @@ export const CoursesPage: React.FC = () => {
         {/* Status Filter & Search */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-medium">
-            {(['all', 'enrolled', 'completed'] as const).map((st) => (
+            {[
+              { id: 'all', label: 'Tất cả' },
+              { id: 'enrolled', label: 'Đang học' },
+              { id: 'completed', label: 'Hoàn thành' },
+            ].map(({ id, label }) => (
               <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`rounded-lg px-2.5 py-1 capitalize transition-all ${
-                  statusFilter === st
+                key={id}
+                onClick={() => setStatusFilter(id as any)}
+                className={`rounded-lg px-2.5 py-1 transition-all ${
+                  statusFilter === id
                     ? 'bg-white shadow-xs text-slate-900 font-bold dark:bg-slate-900 dark:text-white'
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
                 }`}
               >
-                {st}
+                {label}
               </button>
             ))}
           </div>
 
           <div className="w-full sm:w-60">
             <Input
-              placeholder="Search code or professor..."
+              placeholder="Tìm mã môn hoặc giảng viên..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               leftIcon={<Search className="h-4 w-4 text-slate-400" />}
@@ -216,13 +220,13 @@ export const CoursesPage: React.FC = () => {
       {filteredCourses.length === 0 ? (
         <EmptyState
           icon={Layers}
-          title="No Courses Found"
+          title="Không tìm thấy môn học nào"
           description={
             courses.length === 0
-              ? 'No courses enrolled yet. Add your first course to begin tracking timetable schedules and attendance.'
-              : 'No courses match your active filter criteria. Try clearing filters or searching with another keyword.'
+              ? 'Chưa có môn học nào được đăng ký. Thêm môn học đầu tiên để bắt đầu theo dõi thời khóa biểu và điểm danh.'
+              : 'Không có môn học nào khớp với bộ lọc hiện tại. Thử bỏ bộ lọc hoặc tìm kiếm bằng từ khóa khác.'
           }
-          actionLabel={courses.length === 0 ? 'Enroll First Course' : 'Clear Filters'}
+          actionLabel={courses.length === 0 ? 'Thêm môn đầu tiên' : 'Xóa bộ lọc'}
           onAction={() => {
             if (courses.length === 0) {
               setIsAddModalOpen(true);
@@ -273,24 +277,24 @@ export const CoursesPage: React.FC = () => {
       <Modal
         isOpen={!!courseToDelete}
         onClose={() => setCourseToDelete(null)}
-        title="Delete Course Confirmation"
-        description="Are you sure you want to permanently remove this course?"
+        title="Xác nhận xóa môn học"
+        description="Bạn có chắc chắn muốn xóa vĩnh viễn môn học này khỏi hệ thống?"
       >
         <div className="space-y-4">
           <div className="p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200 flex items-start gap-2">
             <AlertTriangle className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
             <div>
-              <span className="font-bold block">Permanent Academic Removal</span>
-              Deleting <strong className="font-mono">{courseToDelete?.code}</strong> will remove all corresponding lessons, attendance logs, and class schedule slots.
+              <span className="font-bold block">Hành động không thể hoàn tác</span>
+              Xóa môn học <strong className="font-mono">{courseToDelete?.code}</strong> sẽ đồng thời xóa toàn bộ bài học, lịch sử điểm danh và các tiết học trong thời khóa biểu.
             </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" size="sm" onClick={() => setCourseToDelete(null)}>
-              Cancel
+              Hủy
             </Button>
             <Button variant="danger" size="sm" onClick={handleDeleteConfirm}>
-              Confirm Delete
+              Xác nhận xóa
             </Button>
           </div>
         </div>

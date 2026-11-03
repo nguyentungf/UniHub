@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Assignment, AssignmentStatus, PriorityLevel } from '@/types';
 import { assignmentRepository, dataAccessLayer } from '@/lib/storage/dal';
+import { getDatabaseMode } from '@/lib/storage/db';
 import { SEED_DATA } from '@/constants/seedData';
 import { AssignmentSortOption } from '@/features/assignments/utils/assignmentLogic';
 
@@ -34,7 +35,7 @@ export interface AssignmentState {
 }
 
 export const useAssignmentStore = create<AssignmentState>((set, get) => ({
-  assignments: SEED_DATA.data.assignments,
+  assignments: typeof window !== 'undefined' && getDatabaseMode() === 'real' ? [] : SEED_DATA.data.assignments,
   isLoading: false,
   error: null,
 
@@ -59,7 +60,7 @@ export const useAssignmentStore = create<AssignmentState>((set, get) => ({
       await dataAccessLayer.initializeSeedDataIfNeeded();
       const fetched = await assignmentRepository.getAll();
       set({
-        assignments: fetched.length > 0 ? fetched : SEED_DATA.data.assignments,
+        assignments: fetched,
         isLoading: false,
       });
     } catch (err: unknown) {

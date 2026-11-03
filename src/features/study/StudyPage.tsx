@@ -57,18 +57,18 @@ export const StudyPage: React.FC = () => {
     <div className="space-y-6">
       {/* Workspace Header */}
       <PageHeader
-        title="Study Workspace & Pomodoro"
-        subtitle="Time-tested Pomodoro flow, deep work tracking, and course revision analytics"
+        title="Bàn học & Đồng hồ Pomodoro"
+        subtitle="Phương pháp Pomodoro khoa học, theo dõi tập trung sâu và thống kê ôn tập"
         badge={
           <Badge variant="brand" dot>
-            {dailyStats.sessionCount} Sessions Today
+            {dailyStats.sessionCount} Phiên hôm nay
           </Badge>
         }
         actions={
           <div className="flex items-center gap-2">
             <NavLink to="/notes">
               <Button size="sm" variant="outline" leftIcon={<FileText className="h-4 w-4" />}>
-                Course Notes ({notes.length})
+                Ghi chú môn học ({notes.length})
               </Button>
             </NavLink>
           </div>
@@ -80,7 +80,7 @@ export const StudyPage: React.FC = () => {
         <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between dark:bg-rose-950/40 dark:border-rose-900/60 dark:text-rose-300">
           <span>{error}</span>
           <Button size="xs" variant="outline" onClick={loadSessions} leftIcon={<RefreshCw className="h-3 w-3" />}>
-            Retry
+            Thử lại
           </Button>
         </div>
       )}
@@ -111,18 +111,18 @@ export const StudyPage: React.FC = () => {
             <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 rounded-full bg-white/10 blur-xl pointer-events-none" />
             <div className="flex items-center gap-2 text-indigo-100 text-xs font-semibold uppercase tracking-wider mb-2">
               <Sparkles className="h-4 w-4" />
-              <span>Deep Work Protocol</span>
+              <span>Giao thức tập trung sâu</span>
             </div>
             <h3 className="text-lg font-bold leading-snug">
-              25m Focus + 5m Rest
+              25p Tập trung + 5p Nghỉ
             </h3>
             <p className="mt-2 text-xs text-indigo-100/90 leading-relaxed">
-              Maintain cognitive clarity by tackling one task per session. The timer stays accurate
-              even if you switch tabs or minimize the browser.
+              Duy trì sự tập trung tối đa bằng cách giải quyết một nhiệm vụ mỗi phiên. Đồng hồ vẫn chạy chính xác
+              kể cả khi chuyển tab hoặc thu nhỏ trình duyệt.
             </p>
 
             <div className="mt-5 pt-4 border-t border-white/20 flex items-center justify-between text-xs">
-              <span className="text-indigo-200">Weekly Target Progress:</span>
+              <span className="text-indigo-200">Tiến độ mục tiêu tuần:</span>
               <span className="font-bold text-white font-mono">
                 {weeklyStats.percentOfTarget}% ({weeklyStats.totalHours}h / {weeklyStats.targetMinutes / 60}h)
               </span>
@@ -134,10 +134,10 @@ export const StudyPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                 <FileText className="h-4 w-4 text-brand-500" />
-                <span>Recent Knowledge Vault</span>
+                <span>Kho kiến thức gần đây</span>
               </h4>
               <NavLink to="/notes" className="text-[11px] font-semibold text-brand-600 hover:underline">
-                View all
+                Xem tất cả
               </NavLink>
             </div>
             <div className="space-y-2">

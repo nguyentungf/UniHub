@@ -39,10 +39,10 @@ export const WhatIfSimulatorCard: React.FC<WhatIfSimulatorCardProps> = ({
         <div>
           <CardTitle className="text-sm font-bold flex items-center gap-2">
             <Sliders className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-            <span>&quot;What-If&quot; Grade Scenario Simulator</span>
+            <span>Mô phỏng kịch bản điểm số & GPA</span>
           </CardTitle>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Simulate expected grades for enrolled courses to evaluate real-time GPA trajectory
+            Dự báo điểm các môn đang học để kiểm tra sự thay đổi của GPA theo thời gian thực
           </p>
         </div>
 
@@ -53,7 +53,7 @@ export const WhatIfSimulatorCard: React.FC<WhatIfSimulatorCardProps> = ({
             leftIcon={<RotateCcw className="h-3.5 w-3.5" />}
             onClick={onReset}
           >
-            Reset
+            Đặt lại
           </Button>
         </div>
       </CardHeader>
@@ -63,7 +63,7 @@ export const WhatIfSimulatorCard: React.FC<WhatIfSimulatorCardProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-2xl bg-brand-50/50 border border-brand-100 dark:bg-brand-950/20 dark:border-brand-900/40">
           <div>
             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
-              Projected Term GPA
+              GPA Học kỳ dự kiến
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-xl font-bold font-mono text-brand-700 dark:text-brand-300">
@@ -77,14 +77,14 @@ export const WhatIfSimulatorCard: React.FC<WhatIfSimulatorCardProps> = ({
                   semDelta > 0 ? 'text-emerald-600' : 'text-rose-500'
                 }`}
               >
-                {semDelta > 0 ? `+${semDelta.toFixed(2)}` : semDelta.toFixed(2)} vs curr
+                {semDelta > 0 ? `+${semDelta.toFixed(2)}` : semDelta.toFixed(2)} so với hiện tại
               </span>
             )}
           </div>
 
           <div>
             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
-              Projected Cumulative
+              GPA Tích lũy dự kiến
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-xl font-bold font-mono text-emerald-700 dark:text-emerald-300">
@@ -98,33 +98,33 @@ export const WhatIfSimulatorCard: React.FC<WhatIfSimulatorCardProps> = ({
                   cumDelta > 0 ? 'text-emerald-600' : 'text-rose-500'
                 }`}
               >
-                {cumDelta > 0 ? `+${cumDelta.toFixed(2)}` : cumDelta.toFixed(2)} overall
+                {cumDelta > 0 ? `+${cumDelta.toFixed(2)}` : cumDelta.toFixed(2)} tổng thể
               </span>
             )}
           </div>
 
           <div>
             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
-              Simulated Courses
+              Môn học mô phỏng
             </span>
             <span className="text-xl font-bold text-slate-900 dark:text-white mt-0.5 block">
               {targetCourses.length}
             </span>
             <span className="text-[10px] text-slate-500">
-              {targetCourses.reduce((sum, c) => sum + c.credits, 0)} Total Credits
+              Tổng {targetCourses.reduce((sum, c) => sum + c.credits, 0)} tín chỉ
             </span>
           </div>
 
           <div>
             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
-              Trajectory Status
+              Xếp loại dự kiến
             </span>
             <Badge
               variant={projectedCumulativeGpa >= 3.7 ? 'emerald' : 'brand'}
               size="sm"
               className="mt-1"
             >
-              {projectedCumulativeGpa >= 3.7 ? 'Dean’s Honor List' : 'On Track'}
+              {projectedCumulativeGpa >= 3.7 ? 'Học lực Xuất sắc' : 'Đúng tiến độ'}
             </Badge>
           </div>
         </div>
@@ -158,7 +158,7 @@ export const WhatIfSimulatorCard: React.FC<WhatIfSimulatorCardProps> = ({
                       {course.name}
                     </p>
                     <p className="text-[11px] text-slate-400">
-                      {course.credits} Credits · Target: {course.targetGrade || 'A'}
+                      {course.credits} Tín chỉ · Mục tiêu: {course.targetGrade || 'A'}
                     </p>
                   </div>
                 </div>
@@ -173,7 +173,7 @@ export const WhatIfSimulatorCard: React.FC<WhatIfSimulatorCardProps> = ({
                   >
                     {scale.tiers.map((tier) => (
                       <option key={tier.letter} value={tier.gradePoint}>
-                        {tier.letter} ({tier.gradePoint.toFixed(2)} pts)
+                        {tier.letter} ({tier.gradePoint.toFixed(2)} đ)
                       </option>
                     ))}
                   </select>
